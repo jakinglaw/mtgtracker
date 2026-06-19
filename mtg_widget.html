@@ -6,9 +6,19 @@
 <title>MTG Standard Tracker</title>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
-:root{--bg:#0e0e12;--bg-card:#17171f;--bg-inset:#1e1e2a;--border:#2a2a3a;--border-hi:#3d3d55;--text:#dde1f0;--text-muted:#7b7f9a;--text-dim:#4a4d65;--gold:#c9a84c;--gold-dim:#7a5e28;--gold-bg:rgba(201,168,76,0.1);--blue:#4a90d9;--green:#4caf72;--red:#e05555;--purple:#9b72cf;--radius:8px;--radius-lg:14px;--font-body:'Georgia',serif;--font-ui:system-ui,-apple-system,sans-serif;--font-mono:'Courier New',monospace;}
+:root{
+  --bg:#0e0e12;--bg-card:#17171f;--bg-inset:#1e1e2a;
+  --border:#2a2a3a;--border-hi:#3d3d55;
+  --text:#dde1f0;--text-muted:#7b7f9a;--text-dim:#4a4d65;
+  --gold:#c9a84c;--gold-dim:#7a5e28;--gold-bg:rgba(201,168,76,0.1);
+  --blue:#4a90d9;--green:#4caf72;--red:#e05555;--purple:#9b72cf;
+  --radius:8px;--radius-lg:14px;
+  --font-body:'Georgia',serif;--font-ui:system-ui,-apple-system,sans-serif;--font-mono:'Courier New',monospace;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* NAV */
 #nav{display:flex;align-items:center;gap:2px;padding:10px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-wrap:wrap}
 #nav-logo{font-family:var(--font-body);font-size:15px;font-weight:bold;color:var(--gold);letter-spacing:.04em;margin-right:12px;flex-shrink:0}
 .nav-tab{padding:6px 12px;border-radius:6px;cursor:pointer;color:var(--text-muted);font-size:13px;font-weight:500;transition:all .15s;border:none;background:none;white-space:nowrap}
@@ -17,12 +27,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size
 #grist-status.connected{background:rgba(76,175,114,.15);color:var(--green)}
 #grist-status.disconnected{background:rgba(224,85,85,.15);color:var(--red)}
 #grist-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-#content{padding:18px 18px 60px;max-width:1160px;margin:0 auto}
+
+/* LAYOUT */
+#content{padding:18px 18px 60px;max-width:1200px;margin:0 auto}
 .view{display:none}.view.active{display:block}
 .split{display:grid;grid-template-columns:300px 1fr;gap:14px}
 .split-wide{display:grid;grid-template-columns:330px 1fr;gap:14px}
+
+/* PANELS */
 .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px}
 .panel-title{font-family:var(--font-body);font-size:16px;color:var(--gold);margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+
+/* FORMS */
 input,textarea,select{background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:7px 10px;font-size:13px;font-family:var(--font-ui);width:100%;transition:border-color .15s;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold-dim)}
 textarea{resize:vertical;min-height:75px}
@@ -32,12 +48,16 @@ label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;lett
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .field-row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+
+/* BUTTONS */
 .btn{padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-ui);transition:all .15s}
 .btn-primary{background:var(--gold);color:#0e0e12}.btn-primary:hover{background:#d4b25f}
 .btn-secondary{background:var(--bg-inset);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--border-hi)}
 .btn-danger{background:rgba(224,85,85,.15);color:var(--red);border:1px solid rgba(224,85,85,.3)}.btn-danger:hover{background:rgba(224,85,85,.25)}
 .btn-sm{padding:4px 10px;font-size:12px}.btn-xs{padding:2px 7px;font-size:11px}
 .btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+
+/* LISTS */
 .list-pane{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 .list-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)}
 .list-item{padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
@@ -46,6 +66,8 @@ label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;lett
 .list-item-name{font-weight:600;font-size:13px}
 .list-item-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
 .list-scroll{max-height:500px;overflow-y:auto}
+
+/* BADGES */
 .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.04em}
 .badge-tier1{background:rgba(201,168,76,.2);color:var(--gold)}.badge-tier2{background:rgba(74,144,217,.2);color:var(--blue)}
 .badge-tier3{background:rgba(155,114,207,.2);color:var(--purple)}.badge-fringe{background:var(--bg-inset);color:var(--text-muted)}
@@ -53,6 +75,8 @@ label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;lett
 .badge-high{background:rgba(224,85,85,.2);color:var(--red)}.badge-medium{background:rgba(201,168,76,.2);color:var(--gold)}.badge-low{background:rgba(76,175,114,.2);color:var(--green)}
 .badge-aggro{background:rgba(224,85,85,.15);color:#e07755}.badge-midrange{background:rgba(76,175,114,.15);color:var(--green)}
 .badge-control{background:rgba(74,144,217,.15);color:var(--blue)}.badge-combo{background:rgba(155,114,207,.15);color:var(--purple)}.badge-ramp{background:rgba(201,168,76,.15);color:var(--gold)}
+
+/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:14px}
 .stat-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
 .stat-num{font-size:26px;font-weight:800;font-family:var(--font-body);color:var(--gold);line-height:1}
@@ -60,35 +84,78 @@ label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;lett
 .notes-display{background:var(--bg-inset);border-radius:var(--radius);padding:11px;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);border:1px solid var(--border);min-height:50px}
 .coll-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:9px 0;color:var(--text-muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);margin-bottom:10px}
 .coll-body.collapsed{display:none}
-.pip{width:17px;height:17px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0}
-.pip-W{background:#f9f6d0;color:#5a5030}.pip-U{background:#3a7ac0;color:#d0e8ff}.pip-B{background:#2a1a2a;color:#c0a0d0;border:1px solid #5a3a6a}.pip-R{background:#c03a20;color:#ffd0c0}.pip-G{background:#2a7a30;color:#d0ffd8}
-#toast{position:fixed;bottom:20px;right:20px;background:var(--bg-card);border:1px solid var(--gold-dim);color:var(--text);padding:9px 16px;border-radius:var(--radius);font-size:13px;opacity:0;transition:opacity .3s;z-index:999;pointer-events:none}
-#toast.show{opacity:1}
-.empty{text-align:center;padding:36px 20px;color:var(--text-dim)}.empty-icon{font-size:32px;margin-bottom:10px}
-.result-win{color:var(--green);font-weight:700}.result-loss{color:var(--red);font-weight:700}.result-draw{color:var(--text-muted);font-weight:700}
-/* Autocomplete */
+
+/* ── MANA SYMBOL SVGs ── */
+.ms{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;font-size:9px;font-weight:900;flex-shrink:0;vertical-align:middle;line-height:1}
+.ms-W{background:#f9f6d0;color:#5a5030;border:1px solid #c8b96a}
+.ms-U{background:#2a6cb0;color:#d0e8ff;border:1px solid #1a4a80}
+.ms-B{background:#1a0a1a;color:#c0a0d0;border:1px solid #6a4a7a}
+.ms-R{background:#c03a20;color:#ffd0c0;border:1px solid #801800}
+.ms-G{background:#2a7a30;color:#d0ffd8;border:1px solid #1a5020}
+.ms-C{background:#aaaaaa;color:#333;border:1px solid #888}
+.ms-X{background:#888;color:#fff;border:1px solid #555}
+.ms-num{background:#888;color:#fff;border:1px solid #555;font-size:8px}
+.ms-2{background:#b0a060;color:#fff;border:1px solid #806040}
+.ms-P{background:#333;color:#e0a0e0;border:1px solid #664466;font-size:7px}
+.mana-cost{display:inline-flex;gap:2px;align-items:center;vertical-align:middle}
+
+/* AUTOCOMPLETE */
 .ac-wrap{position:relative}
-.ac-drop{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-hi);border-radius:var(--radius);z-index:300;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5);display:none}
+.ac-drop{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-hi);border-radius:var(--radius);z-index:300;max-height:220px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.6);display:none}
 .ac-item{padding:8px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px}
 .ac-item:hover,.ac-item.active{background:var(--bg-inset)}
 .ac-name{font-weight:600}.ac-sub{font-size:11px;color:var(--text-muted)}
-/* Card detail */
+
+/* CARD DETAIL */
 .card-preview{display:grid;grid-template-columns:170px 1fr;gap:14px;margin-bottom:12px}
 .card-img-box{width:170px;border-radius:10px;overflow:hidden;background:var(--bg-inset);border:1px solid var(--border);min-height:240px;display:flex;align-items:center;justify-content:center}
 .card-img-box img{width:100%;display:block}
 .cs-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}
 .cs{display:inline-flex;flex-direction:column;align-items:center;background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:4px 9px;min-width:54px}
 .cs-v{font-size:14px;font-weight:700}.cs-l{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
-.oracle{background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius);padding:9px;font-size:12px;line-height:1.6;color:var(--text-muted)}
+.oracle-box{background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius);padding:9px;font-size:12px;line-height:1.7;color:var(--text-muted)}
 hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
-/* Import */
-#import-ta{font-family:var(--font-mono);font-size:12px;min-height:180px;line-height:1.8}
+
+/* IMPORT */
+.import-ta{font-family:var(--font-mono);font-size:12px;min-height:180px;line-height:1.8}
 .ir-ok{color:var(--green)}.ir-warn{color:var(--gold)}.ir-err{color:var(--red)}
+
+/* DECK CARD ROW (existing cards in deck) */
 .deck-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:5px;cursor:pointer}
 .deck-row:hover{background:var(--bg-inset)}
-/* Loading spinner */
-.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--border-hi);border-top-color:var(--gold);border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;margin-left:5px}
-@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── CARD TRAY (new horizontal card selector) ── */
+#card-tray-wrap{margin-bottom:14px}
+#card-tray-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+#card-tray{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px;min-height:140px;scroll-behavior:smooth}
+#card-tray::-webkit-scrollbar{height:5px}
+#card-tray::-webkit-scrollbar-track{background:var(--bg-inset);border-radius:3px}
+#card-tray::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px}
+.tray-card{flex-shrink:0;width:110px;background:var(--bg-inset);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;transition:border-color .15s;cursor:default}
+.tray-card:hover{border-color:var(--border-hi)}
+.tray-card-img{width:100%;height:78px;object-fit:cover;object-position:center top;display:block;background:var(--bg)}
+.tray-card-img-ph{width:100%;height:78px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--bg)}
+.tray-card-body{padding:6px 6px 4px}
+.tray-card-name{font-size:10px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tray-card-cost{font-size:10px;color:var(--text-muted);margin-bottom:5px;min-height:14px}
+.tray-qty-row{display:flex;align-items:center;justify-content:center;gap:4px}
+.tray-qty-btn{width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:all .1s}
+.tray-qty-btn:hover{background:var(--gold);color:#0e0e12;border-color:var(--gold)}
+.tray-qty-num{width:24px;text-align:center;font-size:13px;font-weight:700;color:var(--text)}
+.tray-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(224,85,85,.8);color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;line-height:1;padding:0}
+.tray-card:hover .tray-remove{opacity:1}
+.tray-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--text-dim);font-size:13px;font-style:italic;padding:20px 0}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg-card);border:1px solid var(--gold-dim);color:var(--text);padding:9px 16px;border-radius:var(--radius);font-size:13px;opacity:0;transition:opacity .3s;z-index:999;pointer-events:none}
+#toast.show{opacity:1}
+.empty{text-align:center;padding:36px 20px;color:var(--text-dim)}.empty-icon{font-size:32px;margin-bottom:10px}
+.result-win{color:var(--green);font-weight:700}.result-loss{color:var(--red);font-weight:700}.result-draw{color:var(--text-muted);font-weight:700}
+
+/* TAB MODE SWITCHER */
+.mode-tabs{display:flex;background:var(--bg-inset);border-radius:var(--radius);padding:3px;gap:2px;margin-bottom:14px;width:fit-content}
+.mode-btn{padding:5px 14px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-ui);color:var(--text-muted);background:none;transition:all .15s}
+.mode-btn.active{background:var(--bg-card);color:var(--text)}
 </style>
 </head>
 <body>
@@ -104,17 +171,15 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
 
 <div id="content">
 
-<!-- ═══ CARD DATABASE ═══ -->
+<!-- ═══════════ CARD DATABASE ═══════════ -->
 <div class="view active" id="view-carddb">
   <div class="split-wide">
-    <!-- LEFT -->
     <div>
       <div class="list-pane">
         <div class="list-header">
           <span>Card Database</span>
           <span id="db-count" style="font-weight:normal;color:var(--text-dim)">0 cards</span>
         </div>
-        <!-- Scryfall search -->
         <div style="padding:10px 12px;border-bottom:1px solid var(--border)">
           <label style="margin-bottom:5px">Search Scryfall — type a name</label>
           <div class="ac-wrap">
@@ -124,7 +189,6 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
           </div>
           <div id="scry-status" style="font-size:11px;color:var(--text-dim);margin-top:3px;min-height:15px"></div>
         </div>
-        <!-- Filter saved cards -->
         <div style="padding:7px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px">
           <input type="text" id="db-filter" placeholder="Filter saved…" oninput="renderDBList()" style="font-size:12px">
           <select id="db-type-f" onchange="renderDBList()" style="width:auto;font-size:12px;padding:5px 7px">
@@ -135,39 +199,34 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
           </select>
         </div>
         <div class="list-scroll" id="db-list">
-          <div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Search Scryfall above or paste a decklist below to add cards</div></div>
+          <div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Search Scryfall above or paste a decklist below</div></div>
         </div>
       </div>
-
-      <!-- Paste import -->
       <div class="panel" style="margin-top:12px">
         <div class="panel-title" style="margin-bottom:8px">📋 Import a Decklist</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Paste from MTG Arena, MTGGoldfish, Moxfield, MTGO, or any site that exports decklists. Handles set codes and collector numbers automatically.</div>
-        <textarea id="import-ta" placeholder="4 Sheoldred, the Apocalypse (ONE) 107&#10;4 Preacher of the Schism (LCI) 106&#10;2 Go for the Throat (BIG) 91&#10;&#10;Sideboard&#10;3 Cut Down (DMU) 89"></textarea>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Paste from MTG Arena, MTGGoldfish, Moxfield, or MTGO. Cards are auto-fetched from Scryfall.</div>
+        <textarea class="import-ta" id="import-ta" placeholder="4 Sheoldred, the Apocalypse (ONE) 107&#10;4 Preacher of the Schism (LCI) 106&#10;&#10;Sideboard&#10;3 Cut Down (DMU) 89"></textarea>
         <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <select id="import-deck" style="flex:1;min-width:160px;font-size:12px">
             <option value="">— Also add to one of my decks (optional) —</option>
           </select>
-          <button class="btn btn-primary btn-sm" onclick="importDecklist()">Import</button>
+          <button class="btn btn-primary btn-sm" onclick="importDecklist('import-ta','import-result','import-deck')">Import</button>
         </div>
         <div id="import-result" style="margin-top:8px;font-size:12px;line-height:1.8"></div>
       </div>
     </div>
-
-    <!-- RIGHT: card detail -->
     <div id="carddb-detail">
       <div class="panel" style="text-align:center;padding:40px;color:var(--text-dim)">
         <div style="font-size:36px;margin-bottom:14px">🃏</div>
-        <div style="font-size:14px">Search for a card above to preview it and save it to your database.</div>
-        <div style="font-size:12px;margin-top:8px">Or paste a full decklist on the left to bulk-import all cards at once — including stats from Scryfall.</div>
+        <div style="font-size:14px">Search for a card to preview it and save it to your database.</div>
+        <div style="font-size:12px;margin-top:8px">Or paste a full decklist on the left to bulk-import all cards at once.</div>
         <div style="margin-top:20px;background:var(--bg-inset);border-radius:var(--radius);padding:12px;text-align:left;font-size:12px">
           <div style="color:var(--gold);font-weight:700;margin-bottom:6px">Workflow tip</div>
           <div style="color:var(--text-muted);line-height:1.8">
             1. Find a deck on <strong>MTGGoldfish</strong> or <strong>Moxfield</strong><br>
             2. Click "Export to Arena" or "Copy for MTGO"<br>
             3. Paste into the Import box → all cards auto-fetched from Scryfall<br>
-            4. Cards appear in your database with full stats &amp; art<br>
-            5. Pick them for your decks with one click
+            4. Then in <strong>My Decks</strong>, paste the same list to build your decklist instantly
           </div>
         </div>
       </div>
@@ -175,7 +234,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
 </div>
 
-<!-- ═══ META DECKS ═══ -->
+<!-- ═══════════ META DECKS ═══════════ -->
 <div class="view" id="view-meta">
   <div class="split">
     <div class="list-pane">
@@ -190,7 +249,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
   <div id="meta-form" class="panel" style="display:none;margin-top:12px">
     <div class="panel-title" id="mf-title">Add Meta Deck</div>
     <input type="hidden" id="mf-id">
-    <div class="field-row"><div class="field"><label>Deck Name</label><input id="mf-name" type="text" placeholder="e.g. Esper Midrange"></div><div class="field"><label>Colors</label><input id="mf-colors" type="text" placeholder="e.g. WUB"></div></div>
+    <div class="field-row"><div class="field"><label>Deck Name</label><input id="mf-name" type="text"></div><div class="field"><label>Colors</label><input id="mf-colors" type="text" placeholder="e.g. WUB"></div></div>
     <div class="field-row-3">
       <div class="field"><label>Tier</label><select id="mf-tier"><option value="">—</option><option>Tier 1</option><option>Tier 2</option><option>Tier 3</option><option>Fringe</option></select></div>
       <div class="field"><label>Archetype</label><select id="mf-archetype"><option value="">—</option><option>Aggro</option><option>Midrange</option><option>Control</option><option>Combo</option><option>Ramp</option></select></div>
@@ -208,7 +267,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
 </div>
 
-<!-- ═══ MY DECKS ═══ -->
+<!-- ═══════════ MY DECKS ═══════════ -->
 <div class="view" id="view-mydecks">
   <div class="split">
     <div class="list-pane">
@@ -217,7 +276,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
     </div>
     <div id="mydecks-detail"><div class="panel" style="text-align:center;padding:40px;color:var(--text-dim)"><div style="font-size:32px;margin-bottom:12px">🧙</div><div>Select a deck.</div></div></div>
   </div>
-  <!-- Deck form -->
+  <!-- Deck edit form -->
   <div id="df-form" class="panel" style="display:none;margin-top:12px">
     <div class="panel-title" id="df-title">Add Deck</div>
     <input type="hidden" id="df-id">
@@ -238,37 +297,99 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
       <button class="btn btn-danger btn-sm" id="df-del" style="display:none;margin-left:auto" onclick="deleteMyDeck()">Delete</button>
     </div>
   </div>
-  <!-- Card add panel -->
+
+  <!-- ─── ADD CARDS PANEL (paste + search + tray) ─── -->
   <div id="cap" class="panel" style="display:none;margin-top:12px">
-    <div class="panel-title" id="cap-title">Add Card to Deck</div>
-    <input type="hidden" id="cap-eid"><input type="hidden" id="cap-did">
-    <div class="field">
-      <label>Pick from Card Database (type to search)</label>
-      <div class="ac-wrap">
-        <input id="cap-q" type="text" placeholder="Type a card name from your database…" oninput="renderCapAC()">
-        <div class="ac-drop" id="cap-ac"></div>
+    <div class="panel-title" id="cap-title">Add Cards to Deck</div>
+    <input type="hidden" id="cap-did">
+
+    <!-- Mode switch -->
+    <div class="mode-tabs">
+      <button class="mode-btn active" id="mode-btn-search" onclick="setCapMode('search')">🔍 Search</button>
+      <button class="mode-btn" id="mode-btn-paste" onclick="setCapMode('paste')">📋 Paste List</button>
+    </div>
+
+    <!-- SEARCH mode -->
+    <div id="cap-mode-search">
+      <div class="field">
+        <label>Type to search your Card Database</label>
+        <div class="ac-wrap">
+          <input id="cap-q" type="text" placeholder="Card name…" oninput="renderCapAC()" autocomplete="off">
+          <div class="ac-drop" id="cap-ac"></div>
+        </div>
+        <div style="margin-top:5px;font-size:12px;color:var(--text-dim)">
+          Card missing? <button class="btn btn-xs btn-secondary" onclick="showView('carddb',document.getElementById('tab-carddb'))">Go to Card Database to add it →</button>
+        </div>
       </div>
-      <div id="cap-sel" style="margin-top:6px;font-size:13px;color:var(--text-muted)">No card selected</div>
     </div>
-    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">
-      Card not showing? <button class="btn btn-xs btn-secondary" onclick="showView('carddb',document.getElementById('tab-carddb'));closeCapAndGoImport()">Go to Card Database to add it first</button>
+
+    <!-- PASTE mode -->
+    <div id="cap-mode-paste" style="display:none">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Paste a decklist — same format as MTG Arena / MTGGoldfish / Moxfield export. Cards already in your database are added instantly; new cards are fetched from Scryfall.</div>
+      <textarea class="import-ta" id="cap-paste-ta" placeholder="4 Sheoldred, the Apocalypse (ONE) 107&#10;4 Preacher of the Schism (LCI) 106&#10;2 Go for the Throat&#10;&#10;Sideboard&#10;3 Cut Down (DMU) 89"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <div style="flex:1">
+          <select id="cap-paste-zone" style="font-size:12px">
+            <option value="auto">Auto-detect zone (Mainboard / Sideboard)</option>
+            <option value="Mainboard">Force all → Mainboard</option>
+            <option value="Sideboard">Force all → Sideboard</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="importToDeck()">Import into Deck</button>
+      </div>
+      <div id="cap-paste-result" style="margin-top:8px;font-size:12px;line-height:1.8"></div>
     </div>
-    <div class="field-row-4">
-      <div class="field"><label>Qty</label><input id="cap-qty" type="number" min="1" max="99" value="4"></div>
-      <div class="field"><label>Zone</label><select id="cap-zone"><option>Mainboard</option><option>Sideboard</option></select></div>
-      <div class="field"><label>Role</label><select id="cap-role"><option>Win Condition</option><option>Removal</option><option>Card Draw</option><option>Ramp</option><option>Disruption</option><option>Protection</option><option>Utility</option><option>Land</option></select></div>
-      <div class="field"><label>Rating</label><select id="cap-perf"><option>Excellent</option><option>Good</option><option>Average</option><option>Underperforming</option><option>Cut Candidate</option></select></div>
+
+    <!-- CARD TRAY -->
+    <div id="card-tray-wrap" style="margin-top:14px">
+      <div id="card-tray-label">
+        <span>Selected Cards <span id="tray-count" style="font-weight:normal;color:var(--text-dim)">— none yet</span></span>
+        <button class="btn btn-xs btn-secondary" onclick="clearTray()" id="tray-clear-btn" style="display:none">Clear all</button>
+      </div>
+      <div id="card-tray">
+        <div class="tray-empty">Cards you add will appear here as a row — adjust quantities then save</div>
+      </div>
     </div>
-    <div class="field"><label>Notes</label><textarea id="cap-notes" style="min-height:55px" placeholder="Play patterns, synergies, corner cases…"></textarea></div>
+
+    <!-- Zone + notes for search-mode single card -->
+    <div id="cap-single-opts" style="display:none;margin-top:4px">
+      <div class="field-row" style="margin-bottom:8px">
+        <div class="field"><label>Zone</label><select id="cap-zone"><option>Mainboard</option><option>Sideboard</option></select></div>
+        <div class="field"><label>Role</label><select id="cap-role"><option>Win Condition</option><option>Removal</option><option>Card Draw</option><option>Ramp</option><option>Disruption</option><option>Protection</option><option>Utility</option><option>Land</option></select></div>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:10px">
+      <label>Notes (applies to all cards being added)</label>
+      <textarea id="cap-notes" style="min-height:50px" placeholder="Play patterns, synergies, corner cases…"></textarea>
+    </div>
+
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="saveCardEntry()">Save Card</button>
-      <button class="btn btn-secondary" onclick="document.getElementById('cap').style.display='none'">Cancel</button>
-      <button class="btn btn-danger btn-sm" id="cap-del" style="display:none;margin-left:auto" onclick="deleteCardEntry()">Remove</button>
+      <button class="btn btn-primary" onclick="saveTrayCards()">Save All Cards to Deck</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('cap').style.display='none';clearTray()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Edit single existing card entry -->
+  <div id="cap-edit" class="panel" style="display:none;margin-top:12px">
+    <div class="panel-title">Edit Card in Deck</div>
+    <input type="hidden" id="cpe-eid">
+    <div id="cpe-card-info" style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text)"></div>
+    <div class="field-row-4">
+      <div class="field"><label>Qty</label><input id="cpe-qty" type="number" min="1" max="99" value="4"></div>
+      <div class="field"><label>Zone</label><select id="cpe-zone"><option>Mainboard</option><option>Sideboard</option></select></div>
+      <div class="field"><label>Role</label><select id="cpe-role"><option>Win Condition</option><option>Removal</option><option>Card Draw</option><option>Ramp</option><option>Disruption</option><option>Protection</option><option>Utility</option><option>Land</option></select></div>
+      <div class="field"><label>Rating</label><select id="cpe-perf"><option>Excellent</option><option>Good</option><option>Average</option><option>Underperforming</option><option>Cut Candidate</option></select></div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="cpe-notes" style="min-height:55px"></textarea></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveEditedCard()">Save</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('cap-edit').style.display='none'">Cancel</button>
+      <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="deleteCardEntry()">Remove from Deck</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ MATCH LOG ═══ -->
+<!-- ═══════════ MATCH LOG ═══════════ -->
 <div class="view" id="view-matchlog">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
     <div><h2 style="font-family:var(--font-body);color:var(--gold);font-size:17px">Match Log</h2><div style="font-size:12px;color:var(--text-muted);margin-top:2px">Track outcomes and lessons</div></div>
@@ -307,20 +428,79 @@ hr.div{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
 </div>
 
-<!-- ═══ STATS ═══ -->
+<!-- ═══════════ STATS ═══════════ -->
 <div class="view" id="view-stats">
   <h2 style="font-family:var(--font-body);color:var(--gold);font-size:17px;margin-bottom:14px">Performance Stats</h2>
   <div id="stats-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Log some matches to see stats</div></div></div>
 </div>
 
-</div>
+</div><!-- /content -->
 <div id="toast"></div>
 
 <script>
-// ── STATE ──
-const S={cardDB:[],metaDecks:[],myDecks:[],deckCards:[],matchLog:[],selMeta:null,selDeck:null,capCardId:null,gReady:false};
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+const S={cardDB:[],metaDecks:[],myDecks:[],deckCards:[],matchLog:[],selMeta:null,selDeck:null,gReady:false};
+// tray = [{cardId, qty, zone}]
+let tray=[];
+let capMode='search';
 
-// ── GRIST ──
+// ════════════════════════════════════════════
+//  MANA SYMBOL RENDERER
+// ════════════════════════════════════════════
+// Converts "{2}{U}{U}" into colored SVG-style pip spans
+function renderMana(cost){
+  if(!cost)return'';
+  // parse tokens like {W},{U},{B},{R},{G},{C},{X},{0}..{20},{W/U},{2/W} etc.
+  const tokens=[];
+  const re=/\{([^}]+)\}/g;let m;
+  while((m=re.exec(cost))!==null)tokens.push(m[1]);
+  return tokens.map(t=>manaToken(t)).join('');
+}
+function manaToken(t){
+  // hybrid e.g. W/U, 2/W, W/P (phyrexian)
+  if(t.includes('/')){
+    const parts=t.split('/');
+    const [a,b]=parts;
+    if(b==='P'){// phyrexian
+      const base=singleMana(a);
+      return`<span class="ms ms-P" title="{${t}}">${base?'Ψ':'φ'}</span>`;
+    }
+    // hybrid: show first color
+    return`<span class="ms ms-${a}" title="{${t}}">${a}</span>`;
+  }
+  return`<span class="ms ${msCls(t)}" title="{${t}}">${msLabel(t)}</span>`;
+}
+function singleMana(t){return['W','U','B','R','G'].includes(t);}
+function msCls(t){
+  if(['W','U','B','R','G','C','X'].includes(t))return'ms-'+t;
+  if(t==='S')return'ms-U';// snow
+  const n=parseInt(t);if(!isNaN(n))return'ms-num';
+  return'ms-C';
+}
+function msLabel(t){
+  if(t==='W')return'W';if(t==='U')return'U';if(t==='B')return'B';
+  if(t==='R')return'R';if(t==='G')return'G';if(t==='C')return'◇';
+  if(t==='X')return'X';if(t==='S')return'❄';
+  const n=parseInt(t);if(!isNaN(n))return n;
+  return t.substring(0,2);
+}
+// Color identity pips (no cost notation, just WUBRG)
+function colorPips(c){
+  if(!c)return'';
+  const cfg={W:{bg:'#f9f6d0',t:'#5a5030',bd:'1px solid #c8b96a'},U:{bg:'#2a6cb0',t:'#d0e8ff',bd:'1px solid #1a4a80'},B:{bg:'#1a0a1a',t:'#c0a0d0',bd:'1px solid #6a4a7a'},R:{bg:'#c03a20',t:'#ffd0c0',bd:'1px solid #801800'},G:{bg:'#2a7a30',t:'#d0ffd8',bd:'1px solid #1a5020'}};
+  return[...c].filter(x=>cfg[x]).map(x=>`<span class="ms" style="background:${cfg[x].bg};color:${cfg[x].t};border:${cfg[x].bd}">${x}</span>`).join('');
+}
+// oracle text: render mana symbols inline
+function renderOracle(txt){
+  if(!txt)return'';
+  return esc(txt).replace(/\{([^}]+)\}/g,(_,t)=>`<span class="mana-cost">${manaToken(t)}</span>`);
+}
+
+// ════════════════════════════════════════════
+//  GRIST
+// ════════════════════════════════════════════
 function initGrist(){
   if(typeof grist==='undefined'){setGSt(false);loadLocal();return;}
   grist.ready({requiredAccess:'full'});setGSt(true);S.gReady=true;loadFromGrist();
@@ -341,12 +521,12 @@ async function gUpd(t,id,d){if(!S.gReady)return;try{await grist.docApi.applyUser
 async function gDel(t,id){if(!S.gReady)return;try{await grist.docApi.applyUserActions([['RemoveRecord',t,id]]);}catch(e){}}
 function setGSt(ok){const el=document.getElementById('grist-status');el.className=ok?'connected':'disconnected';el.innerHTML=`<span class="dot"></span>${ok?'Grist':'Local'}`;}
 
-// ── LOCAL ──
+// LOCAL
 function loadLocal(){['cardDB','metaDecks','myDecks','deckCards','matchLog'].forEach(k=>{try{S[k]=JSON.parse(localStorage.getItem('mtg_'+k)||'[]');}catch(e){}});renderAll();}
 function saveLocal(){['cardDB','metaDecks','myDecks','deckCards','matchLog'].forEach(k=>localStorage.setItem('mtg_'+k,JSON.stringify(S[k])));}
 function nid(arr){return arr.length>0?Math.max(...arr.map(r=>r.id||0))+1:1;}
 
-// ── NAV ──
+// NAV
 function showView(n,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
@@ -356,13 +536,12 @@ function showView(n,btn){
 }
 function renderAll(){renderDBList();renderMetaList();renderMyDecksList();renderMatchLog();updateImportSel();}
 
-// ── SCRYFALL AUTOCOMPLETE ──
+// ════════════════════════════════════════════
+//  SCRYFALL AUTOCOMPLETE (Card DB)
+// ════════════════════════════════════════════
 let acTimer=null,acItems=[],acIdx=-1;
 function onScryfallType(){const q=document.getElementById('scry-q').value.trim();clearTimeout(acTimer);if(q.length<2){closeScryAC();return;}acTimer=setTimeout(()=>fetchAC(q),300);}
-async function fetchAC(q){
-  try{const r=await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`);const d=await r.json();
-    acItems=d.data||[];renderScryAC();}catch(e){setScrySt('⚠ Network error');}
-}
+async function fetchAC(q){try{const r=await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`);const d=await r.json();acItems=d.data||[];renderScryAC();}catch(e){setScrySt('⚠ Network error');}}
 function renderScryAC(){
   const el=document.getElementById('scry-ac');
   if(!acItems.length){el.style.display='none';return;}
@@ -371,15 +550,14 @@ function renderScryAC(){
 }
 function onScryfallKey(e){
   const its=document.querySelectorAll('#scry-ac .ac-item');
-  if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,its.length-1);hlAC(its,acIdx);e.preventDefault();}
-  else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,-1);hlAC(its,acIdx);e.preventDefault();}
+  if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,its.length-1);hlAC(its,'scry-ac',acIdx);e.preventDefault();}
+  else if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,-1);hlAC(its,'scry-ac',acIdx);e.preventDefault();}
   else if(e.key==='Enter'){e.preventDefault();if(acIdx>=0&&its[acIdx])pickScryfallSuggestion(acItems[acIdx]);else loadCard(document.getElementById('scry-q').value.trim());}
   else if(e.key==='Escape')closeScryAC();
 }
-function hlAC(its,idx){its.forEach((el,i)=>el.classList.toggle('active',i===idx));}
+function hlAC(its,_,idx){its.forEach((el,i)=>el.classList.toggle('active',i===idx));}
 function pickScryfallSuggestion(n){document.getElementById('scry-q').value=n;closeScryAC();loadCard(n);}
 function closeScryAC(){document.getElementById('scry-ac').style.display='none';acItems=[];acIdx=-1;}
-document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap'))closeScryAC();});
 function setScrySt(m){document.getElementById('scry-status').textContent=m;}
 
 async function loadCard(name){
@@ -408,14 +586,14 @@ function renderCardDetail(c){
         <div class="card-img-box">${img?`<img src="${esc(img)}" loading="lazy" alt="${esc(c.name)}">`:'<span style="font-size:32px;color:var(--text-dim)">🃏</span>'}</div>
         <div>
           <div class="cs-row">
-            ${mc?`<div class="cs"><span class="cs-v">${esc(mc)}</span><span class="cs-l">Cost</span></div>`:''}
+            ${mc?`<div class="cs"><span class="cs-v"><span class="mana-cost">${renderMana(mc)}</span></span><span class="cs-l">Cost</span></div>`:''}
             ${c.cmc!=null?`<div class="cs"><span class="cs-v">${c.cmc}</span><span class="cs-l">CMC</span></div>`:''}
             ${pt?`<div class="cs"><span class="cs-v">${pt}</span><span class="cs-l">P/T</span></div>`:''}
             ${loyal?`<div class="cs"><span class="cs-v">${loyal}</span><span class="cs-l">Loyalty</span></div>`:''}
-            ${ci?`<div class="cs"><span class="cs-v">${colorPips(ci)}</span><span class="cs-l">Colors</span></div>`:''}
+            ${ci?`<div class="cs"><span class="cs-v"><span class="mana-cost">${colorPips(ci)}</span></span><span class="cs-l">Colors</span></div>`:''}
           </div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:7px;font-style:italic">${esc(c.type_line||'')}</div>
-          ${oracle?`<div class="oracle">${esc(oracle)}</div>`:''}
+          ${oracle?`<div class="oracle-box">${renderOracle(oracle)}</div>`:''}
           ${c.flavor_text?`<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:6px">${esc(c.flavor_text)}</div>`:''}
           <div style="font-size:11px;color:var(--text-dim);margin-top:8px">${esc(c.set_name||'')}${c.rarity?' · '+c.rarity:''}</div>
         </div>
@@ -428,15 +606,21 @@ function renderCardDetail(c){
 }
 
 async function saveFromScryfall(){
-  const c=window._lastScryfallCard; if(!c)return;
-  const face=c.card_faces?c.card_faces[0]:c;
-  const data={name:c.name,mana_cost:face.mana_cost||c.mana_cost||'',cmc:c.cmc||0,type_line:c.type_line||'',oracle_text:face.oracle_text||'',power:c.power||face.power||'',toughness:c.toughness||face.toughness||'',loyalty:c.loyalty||face.loyalty||'',colors:(c.color_identity||[]).join(''),image_uri:c.image_uris?.normal||c.card_faces?.[0]?.image_uris?.normal||'',scryfall_id:c.id,standard_legal:c.legalities?.standard==='legal'?1:0,set_code:c.set||'',set_name:c.set_name||'',rarity:c.rarity||''};
-  const row={id:nid(S.cardDB),...data}; S.cardDB.push(row);
-  const gId=await gAdd('Card_Database',data); if(gId)row.id=gId;
+  const c=window._lastScryfallCard;if(!c)return;
+  const row=scryfallToRow(c);const newId=nid(S.cardDB);row.id=newId;S.cardDB.push(row);
+  const gId=await gAdd('Card_Database',scryfallToData(c));if(gId)row.id=gId;
   saveLocal();renderDBList();renderCardDetail(c);toast(`✓ "${c.name}" saved`);
 }
 
-// ── CARD DB LIST ──
+function scryfallToData(c){
+  const face=c.card_faces?c.card_faces[0]:c;
+  return{name:c.name,mana_cost:face.mana_cost||c.mana_cost||'',cmc:c.cmc||0,type_line:c.type_line||'',oracle_text:face.oracle_text||'',power:c.power||face.power||'',toughness:c.toughness||face.toughness||'',loyalty:c.loyalty||face.loyalty||'',colors:(c.color_identity||[]).join(''),image_uri:c.image_uris?.normal||c.card_faces?.[0]?.image_uris?.normal||'',scryfall_id:c.id,standard_legal:c.legalities?.standard==='legal'?1:0,set_code:c.set||'',set_name:c.set_name||'',rarity:c.rarity||''};
+}
+function scryfallToRow(c){return{id:0,...scryfallToData(c)};}
+
+// ════════════════════════════════════════════
+//  CARD DB LIST + SAVED CARD VIEW
+// ════════════════════════════════════════════
 function renderDBList(){
   const q=(document.getElementById('db-filter')?.value||'').toLowerCase();
   const tf=document.getElementById('db-type-f')?.value||'';
@@ -444,11 +628,15 @@ function renderDBList(){
   document.getElementById('db-count').textContent=`${S.cardDB.length} cards`;
   const el=document.getElementById('db-list');
   if(!cards.length){el.innerHTML=S.cardDB.length?'<div class="empty"><div class="empty-text">No matches</div></div>':'<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Search Scryfall or paste a decklist</div></div>';return;}
-  el.innerHTML=cards.map(c=>`<div class="list-item" onclick="viewSavedCard(${c.id})"><div class="list-item-name">${esc(c.name)}</div><div class="list-item-sub">${esc(shortType(c.type_line))} ${c.mana_cost?'· '+esc(c.mana_cost):''} ${colorPips(c.colors)}</div></div>`).join('');
+  el.innerHTML=cards.map(c=>`
+    <div class="list-item" onclick="viewSavedCard(${c.id})">
+      <div class="list-item-name">${esc(c.name)}</div>
+      <div class="list-item-sub">${esc(shortType(c.type_line))} <span class="mana-cost">${renderMana(c.mana_cost)}</span></div>
+    </div>`).join('');
 }
 
 function viewSavedCard(id){
-  const c=S.cardDB.find(x=>x.id===id); if(!c)return;
+  const c=S.cardDB.find(x=>x.id===id);if(!c)return;
   const usedIn=S.deckCards.filter(e=>e.card_db_id==id);
   document.getElementById('carddb-detail').innerHTML=`
     <div class="panel">
@@ -457,33 +645,35 @@ function viewSavedCard(id){
         <div class="card-img-box">${c.image_uri?`<img src="${esc(c.image_uri)}" loading="lazy" alt="${esc(c.name)}">`:'<span style="font-size:32px;color:var(--text-dim)">🃏</span>'}</div>
         <div>
           <div class="cs-row">
-            ${c.mana_cost?`<div class="cs"><span class="cs-v">${esc(c.mana_cost)}</span><span class="cs-l">Cost</span></div>`:''}
+            ${c.mana_cost?`<div class="cs"><span class="cs-v"><span class="mana-cost">${renderMana(c.mana_cost)}</span></span><span class="cs-l">Cost</span></div>`:''}
             ${c.cmc!=null&&c.cmc!==''?`<div class="cs"><span class="cs-v">${c.cmc}</span><span class="cs-l">CMC</span></div>`:''}
             ${c.power?`<div class="cs"><span class="cs-v">${c.power}/${c.toughness}</span><span class="cs-l">P/T</span></div>`:''}
             ${c.loyalty?`<div class="cs"><span class="cs-v">${c.loyalty}</span><span class="cs-l">Loyalty</span></div>`:''}
+            ${c.colors?`<div class="cs"><span class="cs-v"><span class="mana-cost">${colorPips(c.colors)}</span></span><span class="cs-l">Colors</span></div>`:''}
           </div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:7px;font-style:italic">${esc(c.type_line||'')}</div>
-          ${c.oracle_text?`<div class="oracle">${esc(c.oracle_text)}</div>`:''}
+          ${c.oracle_text?`<div class="oracle-box">${renderOracle(c.oracle_text)}</div>`:''}
           <div style="font-size:11px;color:var(--text-dim);margin-top:6px">${esc(c.set_name||'')}${c.rarity?' · '+c.rarity:''}</div>
         </div>
       </div>
       <hr class="div">
       <label style="margin-bottom:8px">Add to one of my decks</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${S.myDecks.filter(d=>d.Status!=='Retired').map(d=>`<button class="btn btn-secondary btn-sm" onclick="quickAdd(${id},${d.id})">${esc(d.Deck_Name)}</button>`).join('')||'<span style="color:var(--text-dim);font-size:12px">No active decks. Create one in My Decks first.</span>'}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        ${S.myDecks.filter(d=>d.Status!=='Retired').map(d=>`<button class="btn btn-secondary btn-sm" onclick="quickAddToDeck(${id},${d.id})">${esc(d.Deck_Name)}</button>`).join('')||'<span style="color:var(--text-dim);font-size:12px">No active decks.</span>'}
       </div>
       ${usedIn.length?`<div style="font-size:12px;color:var(--text-muted);margin-top:10px">Already in: ${usedIn.map(e=>{const d=S.myDecks.find(x=>x.id==e.deck_id);return d?`<strong>${esc(d.Deck_Name)}</strong> (${e.qty||1}×)`:''}).filter(Boolean).join(', ')}</div>`:''}
     </div>`;
 }
 
-function quickAdd(cardId,deckId){
+function quickAddToDeck(cardId,deckId){
   S.selDeck=S.myDecks.find(d=>d.id===deckId);
-  openCapPanel(null,deckId,cardId);
+  // navigate to My Decks and open the card panel with this card pre-loaded in tray
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-mydecks').classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-mydecks').classList.add('active');
   renderMyDecksList();renderMyDeckDetail();
+  openCapPanel(deckId,cardId);
 }
 
 async function deleteDBCard(id){
@@ -493,58 +683,67 @@ async function deleteDBCard(id){
   toast('Removed');
 }
 
-// ── IMPORT ──
+// ════════════════════════════════════════════
+//  IMPORT (shared by Card DB and deck paste)
+// ════════════════════════════════════════════
 function updateImportSel(){
   const s=document.getElementById('import-deck');if(!s)return;
-  s.innerHTML='<option value="">— Also add cards to deck (optional) —</option>'+S.myDecks.map(d=>`<option value="${d.id}">${esc(d.Deck_Name)}</option>`).join('');
+  s.innerHTML='<option value="">— Also add to one of my decks (optional) —</option>'+S.myDecks.map(d=>`<option value="${d.id}">${esc(d.Deck_Name)}</option>`).join('');
 }
 
-async function importDecklist(){
-  const raw=document.getElementById('import-ta').value;
-  const targetId=document.getElementById('import-deck').value;
-  const lines=raw.split('\n').map(l=>l.trim());
-  const res={added:[],existed:[],failed:[]};
-  const toAdd=[];
-  let zone='Mainboard';
+async function fetchAndStoreCard(name){
+  // Returns stored card row (existing or newly fetched). Null on failure.
+  const ex=S.cardDB.find(c=>c.name.toLowerCase()===name.toLowerCase());
+  if(ex)return{card:ex,fresh:false};
+  await new Promise(r=>setTimeout(r,320));
+  try{
+    const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
+    const d=await r.json();
+    if(d.object==='error')return null;
+    const data=scryfallToData(d);
+    const row={id:nid(S.cardDB),...data};S.cardDB.push(row);
+    const gId=await gAdd('Card_Database',data);if(gId)row.id=gId;
+    return{card:row,fresh:true};
+  }catch(e){return null;}
+}
 
+function parseDecklist(raw){
+  // Returns [{qty, name, zone}]
+  const lines=raw.split('\n').map(l=>l.trim());
+  const out=[];let zone='Mainboard';
   for(const line of lines){
     if(!line||/^\/\//.test(line)){if(/sideboard/i.test(line))zone='Sideboard';continue;}
     if(/^(sideboard|sb:)/i.test(line)){zone='Sideboard';continue;}
     const m=line.match(/^(\d+)\s+(.+?)(?:\s+\([A-Z0-9]+\)\s+\d+)?$/);
-    if(m)toAdd.push({qty:parseInt(m[1]),name:m[2].trim(),zone});
+    if(m)out.push({qty:parseInt(m[1]),name:m[2].trim(),zone});
   }
+  return out;
+}
 
-  if(!toAdd.length){document.getElementById('import-result').innerHTML='<span class="ir-err">No valid card lines found.</span>';return;}
-  document.getElementById('import-result').innerHTML=`<span style="color:var(--text-muted)">⏳ Importing ${toAdd.length} cards (rate-limited to respect Scryfall)…</span>`;
-
-  const deckEntries=[];
-  for(const item of toAdd){
-    const ex=S.cardDB.find(c=>c.name.toLowerCase()===item.name.toLowerCase());
-    if(ex){res.existed.push(item.name);if(targetId)deckEntries.push({card:ex,qty:item.qty,zone:item.zone});continue;}
-    await new Promise(r=>setTimeout(r,320));
-    try{
-      const r=await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(item.name)}`);
-      const d=await r.json();
-      if(d.object==='error'){res.failed.push(item.name);continue;}
-      const face=d.card_faces?d.card_faces[0]:d;
-      const data={name:d.name,mana_cost:face.mana_cost||d.mana_cost||'',cmc:d.cmc||0,type_line:d.type_line||'',oracle_text:face.oracle_text||'',power:d.power||face.power||'',toughness:d.toughness||face.toughness||'',loyalty:d.loyalty||face.loyalty||'',colors:(d.color_identity||[]).join(''),image_uri:d.image_uris?.normal||d.card_faces?.[0]?.image_uris?.normal||'',scryfall_id:d.id,standard_legal:d.legalities?.standard==='legal'?1:0,set_code:d.set||'',set_name:d.set_name||'',rarity:d.rarity||''};
-      const row={id:nid(S.cardDB),...data};S.cardDB.push(row);
-      const gId=await gAdd('Card_Database',data);if(gId)row.id=gId;
-      res.added.push(d.name);if(targetId)deckEntries.push({card:row,qty:item.qty,zone:item.zone});
-      document.getElementById('import-result').innerHTML=`<span class="ir-ok">✓ ${res.added.length} saved</span> <span class="ir-warn">~ ${res.existed.length} existed</span> <span class="ir-err">✗ ${res.failed.length} failed</span> — fetching…`;
-    }catch(e){res.failed.push(item.name);}
+// Card DB import (also optionally adds to a deck)
+async function importDecklist(taId,resultId,deckSelId){
+  const raw=document.getElementById(taId).value;
+  const targetId=deckSelId?document.getElementById(deckSelId).value:'';
+  const entries=parseDecklist(raw);
+  if(!entries.length){document.getElementById(resultId).innerHTML='<span class="ir-err">No valid card lines found.</span>';return;}
+  document.getElementById(resultId).innerHTML=`<span style="color:var(--text-muted)">⏳ Importing ${entries.length} cards…</span>`;
+  const res={added:[],existed:[],failed:[]};const deckEntries=[];
+  for(const item of entries){
+    const r=await fetchAndStoreCard(item.name);
+    if(!r){res.failed.push(item.name);document.getElementById(resultId).innerHTML=`<span class="ir-ok">✓ ${res.added.length}</span> <span class="ir-warn">~ ${res.existed.length}</span> <span class="ir-err">✗ ${res.failed.length}</span> — working…`;continue;}
+    if(r.fresh)res.added.push(r.card.name);else res.existed.push(r.card.name);
+    if(targetId)deckEntries.push({card:r.card,qty:item.qty,zone:item.zone});
+    document.getElementById(resultId).innerHTML=`<span class="ir-ok">✓ ${res.added.length}</span> <span class="ir-warn">~ ${res.existed.length}</span> <span class="ir-err">✗ ${res.failed.length}</span> — working…`;
   }
-
   if(targetId&&deckEntries.length){
     for(const{card,qty,zone}of deckEntries){
       if(S.deckCards.find(e=>e.deck_id==targetId&&e.card_db_id==card.id))continue;
-      const edata={deck_id:parseInt(targetId),card_db_id:card.id,qty,zone,role:'Utility',perf:'Good',notes:''};
-      const row={id:nid(S.deckCards),...edata};S.deckCards.push(row);
-      const gId=await gAdd('Deck_Cards',edata);if(gId)row.id=gId;
+      const ed={deck_id:parseInt(targetId),card_db_id:card.id,qty,zone,role:'Utility',perf:'Good',notes:''};
+      const row={id:nid(S.deckCards),...ed};S.deckCards.push(row);const gId=await gAdd('Deck_Cards',ed);if(gId)row.id=gId;
     }
   }
   saveLocal();renderDBList();renderMyDecksList();if(S.selDeck)renderMyDeckDetail();updateImportSel();
-  document.getElementById('import-result').innerHTML=
+  document.getElementById(resultId).innerHTML=
     `${res.added.length?`<div class="ir-ok">✓ ${res.added.length} new card${res.added.length!==1?'s':''} fetched from Scryfall &amp; saved</div>`:''}
      ${res.existed.length?`<div class="ir-warn">~ ${res.existed.length} already in your database</div>`:''}
      ${res.failed.length?`<div class="ir-err">✗ Could not find: ${res.failed.join(', ')}</div>`:''}
@@ -552,13 +751,15 @@ async function importDecklist(){
   toast(`Done: ${res.added.length} new, ${res.existed.length} existed${res.failed.length?' · '+res.failed.length+' failed':''}`);
 }
 
-// ── META DECKS ──
+// ════════════════════════════════════════════
+//  META DECKS
+// ════════════════════════════════════════════
 function renderMetaList(){
   const q=(document.getElementById('meta-search')?.value||'').toLowerCase();
   const fl=S.metaDecks.filter(d=>!q||d.Deck_Name?.toLowerCase().includes(q));
   const el=document.getElementById('meta-list');
   if(!fl.length){el.innerHTML='<div class="empty"><div class="empty-icon">🃏</div><div class="empty-text">No meta decks yet</div></div>';return;}
-  el.innerHTML=fl.map(d=>`<div class="list-item ${S.selMeta?.id===d.id?'selected':''}" onclick="selMeta(${d.id})"><div class="list-item-name">${esc(d.Deck_Name||'?')}</div><div class="list-item-sub">${colorPips(d.Colors)} ${d.Tier||''} · ${d.Archetype||''}</div></div>`).join('');
+  el.innerHTML=fl.map(d=>`<div class="list-item ${S.selMeta?.id===d.id?'selected':''}" onclick="selMeta(${d.id})"><div class="list-item-name">${esc(d.Deck_Name||'?')}</div><div class="list-item-sub"><span class="mana-cost">${colorPips(d.Colors)}</span> ${d.Tier||''} · ${d.Archetype||''}</div></div>`).join('');
 }
 function selMeta(id){S.selMeta=S.metaDecks.find(d=>d.id===id);renderMetaList();renderMetaDetail();}
 function renderMetaDetail(){
@@ -568,7 +769,7 @@ function renderMetaDetail(){
   document.getElementById('meta-detail').innerHTML=`
     <div class="panel">
       <div class="panel-title">${esc(d.Deck_Name||'?')}<button class="btn btn-sm btn-secondary" onclick="openMetaForm(${d.id})" style="margin-left:auto">Edit</button></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${tierBadge(d.Tier)}${archBadge(d.Archetype)}${thrBadge(d.Threat_Level)}<span style="color:var(--text-muted);font-size:13px;align-self:center">${colorPips(d.Colors)} ${d.Colors||''}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${tierBadge(d.Tier)}${archBadge(d.Archetype)}${thrBadge(d.Threat_Level)}<span style="margin-left:4px"><span class="mana-cost">${colorPips(d.Colors)}</span></span></div>
       ${d.Key_Cards?`<div class="field"><label>Key Cards</label><div style="font-size:13px">${esc(d.Key_Cards)}</div></div>`:''}
       ${d.Win_Condition?`<div class="field"><label>Win Condition</label><div style="font-size:13px">${esc(d.Win_Condition)}</div></div>`:''}
       <div class="coll-hdr" onclick="tc('md-htb')"><span>How to Beat</span><span id="md-htb-a">▾</span></div>
@@ -582,16 +783,11 @@ function renderMetaDetail(){
 function openMetaForm(id){
   const d=id?S.metaDecks.find(x=>x.id===id):null;
   document.getElementById('mf-title').textContent=d?'Edit Meta Deck':'Add Meta Deck';
-  document.getElementById('mf-id').value=d?.id||'';
-  document.getElementById('mf-name').value=d?.Deck_Name||'';
-  document.getElementById('mf-colors').value=d?.Colors||'';
-  document.getElementById('mf-tier').value=d?.Tier||'';
-  document.getElementById('mf-archetype').value=d?.Archetype||'';
-  document.getElementById('mf-threat').value=d?.Threat_Level||'';
-  document.getElementById('mf-keycards').value=d?.Key_Cards||'';
-  document.getElementById('mf-wincond').value=d?.Win_Condition||'';
-  document.getElementById('mf-htb').value=d?.How_To_Beat||'';
-  document.getElementById('mf-sb').value=d?.Sideboard_Plan||'';
+  document.getElementById('mf-id').value=d?.id||'';document.getElementById('mf-name').value=d?.Deck_Name||'';
+  document.getElementById('mf-colors').value=d?.Colors||'';document.getElementById('mf-tier').value=d?.Tier||'';
+  document.getElementById('mf-archetype').value=d?.Archetype||'';document.getElementById('mf-threat').value=d?.Threat_Level||'';
+  document.getElementById('mf-keycards').value=d?.Key_Cards||'';document.getElementById('mf-wincond').value=d?.Win_Condition||'';
+  document.getElementById('mf-htb').value=d?.How_To_Beat||'';document.getElementById('mf-sb').value=d?.Sideboard_Plan||'';
   document.getElementById('mf-del').style.display=d?'block':'none';
   const f=document.getElementById('meta-form');f.style.display='block';f.scrollIntoView({behavior:'smooth'});
 }
@@ -610,11 +806,13 @@ async function deleteMetaDeck(){
   document.getElementById('meta-detail').innerHTML='<div class="panel" style="text-align:center;padding:40px;color:var(--text-dim)">Deleted.</div>';toast('Deleted');
 }
 
-// ── MY DECKS ──
+// ════════════════════════════════════════════
+//  MY DECKS
+// ════════════════════════════════════════════
 function renderMyDecksList(){
   const el=document.getElementById('mydecks-list');
   if(!S.myDecks.length){el.innerHTML='<div class="empty"><div class="empty-icon">🧙</div><div class="empty-text">No decks yet</div></div>';return;}
-  el.innerHTML=S.myDecks.map(d=>`<div class="list-item ${S.selDeck?.id===d.id?'selected':''}" onclick="selMyDeck(${d.id})"><div class="list-item-name">${esc(d.Deck_Name||'?')}</div><div class="list-item-sub">${colorPips(d.Colors)} ${d.Colors||''} · <span style="color:${d.Status==='Active'?'var(--green)':d.Status==='Retired'?'var(--red)':'var(--gold)'}">${d.Status||''}</span></div></div>`).join('');
+  el.innerHTML=S.myDecks.map(d=>`<div class="list-item ${S.selDeck?.id===d.id?'selected':''}" onclick="selMyDeck(${d.id})"><div class="list-item-name">${esc(d.Deck_Name||'?')}</div><div class="list-item-sub"><span class="mana-cost">${colorPips(d.Colors)}</span> · <span style="color:${d.Status==='Active'?'var(--green)':d.Status==='Retired'?'var(--red)':'var(--gold)'}">${d.Status||''}</span></div></div>`).join('');
 }
 function selMyDeck(id){S.selDeck=S.myDecks.find(d=>d.id===id);renderMyDecksList();renderMyDeckDetail();}
 function renderMyDeckDetail(){
@@ -632,41 +830,42 @@ function renderMyDeckDetail(){
         <div class="stat-box"><div class="stat-num" style="color:${w/ms.length>0.5?'var(--green)':'var(--red)'}">${ms.length?Math.round(w/ms.length*100)+'%':'—'}</div><div class="stat-label">W%</div></div>
       </div>
       ${d.General_Strategy?`<div style="margin-bottom:10px"><label>Strategy</label><div class="notes-display" style="min-height:auto;margin-top:4px">${esc(d.General_Strategy)}</div></div>`:''}
-      <div class="coll-hdr" onclick="tc('dk-mb')"><span>Mainboard (${main.length})</span><button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 9px" onclick="event.stopPropagation();openCapPanel(null,${d.id},null)">+ Add Card</button><span id="dk-mb-a" style="margin-left:8px">▾</span></div>
+      <div class="coll-hdr" onclick="tc('dk-mb')">
+        <span>Mainboard (${main.length})</span>
+        <button class="btn btn-sm btn-primary" style="font-size:11px;padding:3px 9px" onclick="event.stopPropagation();openCapPanel(${d.id},null)">+ Add Cards</button>
+        <span id="dk-mb-a" style="margin-left:8px">▾</span>
+      </div>
       <div class="coll-body" id="dk-mb">${renderEntryList(main)}</div>
       <div class="coll-hdr" onclick="tc('dk-sb')" style="margin-top:10px"><span>Sideboard (${side.length})</span><span id="dk-sb-a">▾</span></div>
       <div class="coll-body" id="dk-sb">${renderEntryList(side)}</div>
     </div>`;
 }
+
 function renderEntryList(entries){
-  if(!entries.length)return'<div style="color:var(--text-dim);font-size:13px;padding:8px 0">No cards. Click "+ Add Card" to pick from your Card Database.</div>';
+  if(!entries.length)return'<div style="color:var(--text-dim);font-size:13px;padding:8px 0">No cards. Click "+ Add Cards" to add from your database.</div>';
   const bt={};entries.forEach(e=>{const c=S.cardDB.find(x=>x.id==e.card_db_id);const t=c?shortType(c.type_line):'Other';if(!bt[t])bt[t]=[];bt[t].push({e,c});});
-  return ['Land','Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Battle','Other'].filter(t=>bt[t]).map(t=>`
+  return['Land','Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Battle','Other'].filter(t=>bt[t]).map(t=>`
     <div style="margin-bottom:10px"><div style="font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${t}s</div>
     ${bt[t].map(({e,c})=>`
-      <div class="deck-row" onclick="openCapPanel(${e.id},${e.deck_id},${e.card_db_id})">
+      <div class="deck-row" onclick="openEditCard(${e.id})">
         <span style="color:var(--text-muted);font-weight:700;font-size:12px;min-width:18px">${e.qty||1}×</span>
-        <span style="font-weight:600;font-size:13px">${esc(c?.name||'?')}</span>
-        ${c?.mana_cost?`<span style="color:var(--text-dim);font-size:11px;font-family:var(--font-mono)">${esc(c.mana_cost)}</span>`:''}
-        <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">${e.role||''}</span>
+        <span style="font-weight:600;font-size:13px;flex:1">${esc(c?.name||'?')}</span>
+        <span class="mana-cost">${renderMana(c?.mana_cost||'')}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${e.role||''}</span>
         ${pdot(e.perf)}
       </div>
       ${e.notes?`<div style="font-size:11px;color:var(--text-muted);padding:0 6px 3px 26px;line-height:1.5">${esc(e.notes.substring(0,100))}${e.notes.length>100?'…':''}</div>`:''}
     `).join('')}</div>`).join('');
 }
+
 function openMyDeckForm(id){
   const d=id?S.myDecks.find(x=>x.id===id):null;
   document.getElementById('df-title').textContent=d?'Edit Deck':'Add Deck';
-  document.getElementById('df-id').value=d?.id||'';
-  document.getElementById('df-name').value=d?.Deck_Name||'';
-  document.getElementById('df-colors').value=d?.Colors||'';
-  document.getElementById('df-format').value=d?.Format||'';
-  document.getElementById('df-status').value=d?.Status||'Active';
-  document.getElementById('df-strat').value=d?.General_Strategy||'';
-  document.getElementById('df-str').value=d?.Strengths||'';
-  document.getElementById('df-wk').value=d?.Weaknesses||'';
-  document.getElementById('df-notes').value=d?.Overall_Notes||'';
-  document.getElementById('df-del').style.display=d?'block':'none';
+  document.getElementById('df-id').value=d?.id||'';document.getElementById('df-name').value=d?.Deck_Name||'';
+  document.getElementById('df-colors').value=d?.Colors||'';document.getElementById('df-format').value=d?.Format||'';
+  document.getElementById('df-status').value=d?.Status||'Active';document.getElementById('df-strat').value=d?.General_Strategy||'';
+  document.getElementById('df-str').value=d?.Strengths||'';document.getElementById('df-wk').value=d?.Weaknesses||'';
+  document.getElementById('df-notes').value=d?.Overall_Notes||'';document.getElementById('df-del').style.display=d?'block':'none';
   const f=document.getElementById('df-form');f.style.display='block';f.scrollIntoView({behavior:'smooth'});
 }
 async function saveMyDeck(){
@@ -684,58 +883,196 @@ async function deleteMyDeck(){
   document.getElementById('mydecks-detail').innerHTML='<div class="panel" style="text-align:center;padding:40px;color:var(--text-dim)">Deleted.</div>';toast('Deleted');
 }
 
-// ── CAP (Card Add Panel) ──
-let capItems=[];
-function openCapPanel(entryId,deckId,cardId){
-  const e=entryId?S.deckCards.find(x=>x.id===entryId):null;
-  document.getElementById('cap-title').textContent=e?'Edit Card':'Add Card to Deck';
-  document.getElementById('cap-eid').value=e?.id||'';
+// ════════════════════════════════════════════
+//  CARD ADD PANEL + TRAY
+// ════════════════════════════════════════════
+function openCapPanel(deckId, preCardId){
   document.getElementById('cap-did').value=deckId;
-  document.getElementById('cap-qty').value=e?.qty||4;
-  document.getElementById('cap-zone').value=e?.zone||'Mainboard';
-  document.getElementById('cap-role').value=e?.role||'Utility';
-  document.getElementById('cap-perf').value=e?.perf||'Good';
-  document.getElementById('cap-notes').value=e?.notes||'';
   document.getElementById('cap-q').value='';
   document.getElementById('cap-ac').style.display='none';
-  document.getElementById('cap-del').style.display=e?'block':'none';
-  S.capCardId=cardId||e?.card_db_id||null;
-  const c=S.capCardId?S.cardDB.find(x=>x.id==S.capCardId):null;
-  document.getElementById('cap-sel').innerHTML=c?`<strong>${esc(c.name)}</strong> <span style="color:var(--text-dim);font-size:11px">${esc(c.mana_cost||'')} ${esc(shortType(c.type_line))}</span>`:'<span style="color:var(--text-dim)">No card selected — type to search</span>';
+  document.getElementById('cap-notes').value='';
+  document.getElementById('cap-edit').style.display='none';
+  // if preCardId is set, add to tray immediately
+  if(preCardId){
+    const c=S.cardDB.find(x=>x.id===preCardId);
+    if(c)addToTray(c,4);
+  }
+  setCapMode('search');
+  renderTray();
   const f=document.getElementById('cap');f.style.display='block';f.scrollIntoView({behavior:'smooth'});
 }
-function closeCapAndGoImport(){document.getElementById('cap').style.display='none';}
+
+function setCapMode(mode){
+  capMode=mode;
+  document.getElementById('cap-mode-search').style.display=mode==='search'?'block':'none';
+  document.getElementById('cap-mode-paste').style.display=mode==='paste'?'block':'none';
+  document.getElementById('mode-btn-search').classList.toggle('active',mode==='search');
+  document.getElementById('mode-btn-paste').classList.toggle('active',mode==='paste');
+}
+
+// ── CARD TRAY ──
+function addToTray(card, qty=4){
+  const existing=tray.find(t=>t.cardId===card.id);
+  if(existing){existing.qty=Math.min(99,existing.qty+qty);} // stack
+  else{tray.push({cardId:card.id,qty});}
+  renderTray();
+}
+
+function clearTray(){tray=[];renderTray();}
+
+function renderTray(){
+  const el=document.getElementById('card-tray');
+  const countEl=document.getElementById('tray-count');
+  const clearBtn=document.getElementById('tray-clear-btn');
+  clearBtn.style.display=tray.length?'block':'none';
+  countEl.textContent=tray.length?`${tray.length} card${tray.length!==1?'s':''}`:' — none yet';
+  if(!tray.length){el.innerHTML='<div class="tray-empty">Cards you add will appear here — adjust quantities then save</div>';return;}
+  el.innerHTML=tray.map(({cardId,qty})=>{
+    const c=S.cardDB.find(x=>x.id===cardId);if(!c)return'';
+    return`<div class="tray-card" id="tc-${cardId}">
+      <button class="tray-remove" onclick="removeTrayCard(${cardId})" title="Remove">✕</button>
+      ${c.image_uri?`<img class="tray-card-img" src="${esc(c.image_uri)}" loading="lazy" alt="${esc(c.name)}">`:`<div class="tray-card-img-ph">🃏</div>`}
+      <div class="tray-card-body">
+        <div class="tray-card-name" title="${esc(c.name)}">${esc(c.name)}</div>
+        <div class="tray-card-cost"><span class="mana-cost">${renderMana(c.mana_cost||'')}</span></div>
+        <div class="tray-qty-row">
+          <button class="tray-qty-btn" onclick="changeTrayQty(${cardId},-1)">−</button>
+          <span class="tray-qty-num" id="tqn-${cardId}">${qty}</span>
+          <button class="tray-qty-btn" onclick="changeTrayQty(${cardId},+1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changeTrayQty(cardId,delta){
+  const item=tray.find(t=>t.cardId===cardId);if(!item)return;
+  item.qty=Math.max(1,Math.min(99,item.qty+delta));
+  const el=document.getElementById(`tqn-${cardId}`);
+  if(el)el.textContent=item.qty;
+}
+
+function removeTrayCard(cardId){
+  tray=tray.filter(t=>t.cardId!==cardId);renderTray();
+}
+
+// CAP: Autocomplete from DB
+let capAcItems=[];
 function renderCapAC(){
   const q=document.getElementById('cap-q').value.toLowerCase();
   const el=document.getElementById('cap-ac');
   if(!q){el.style.display='none';return;}
-  capItems=S.cardDB.filter(c=>c.name?.toLowerCase().includes(q)).slice(0,20);
-  if(!capItems.length){el.innerHTML='<div class="ac-item" style="color:var(--text-dim)">No cards in database — go to Card Database tab to add cards first</div>';el.style.display='block';return;}
-  el.innerHTML=capItems.map((c,i)=>`<div class="ac-item" id="cac-${i}" onmousedown="pickCapCard(${c.id})"><span class="ac-name">${esc(c.name)}</span><span class="ac-sub">${esc(c.mana_cost||'')} · ${esc(shortType(c.type_line))}</span></div>`).join('');
+  capAcItems=S.cardDB.filter(c=>c.name?.toLowerCase().includes(q)).slice(0,20);
+  if(!capAcItems.length){el.innerHTML='<div class="ac-item" style="color:var(--text-dim)">No cards in database — add them first</div>';el.style.display='block';return;}
+  el.innerHTML=capAcItems.map(c=>`
+    <div class="ac-item" onmousedown="pickCapCard(${c.id})">
+      <span class="ac-name">${esc(c.name)}</span>
+      <span class="ac-sub mana-cost">${renderMana(c.mana_cost||'')} · ${esc(shortType(c.type_line))}</span>
+    </div>`).join('');
   el.style.display='block';
 }
+
 function pickCapCard(id){
-  S.capCardId=id;const c=S.cardDB.find(x=>x.id===id);
-  document.getElementById('cap-q').value='';document.getElementById('cap-ac').style.display='none';
-  document.getElementById('cap-sel').innerHTML=c?`<strong>${esc(c.name)}</strong> <span style="color:var(--text-dim);font-size:11px">${esc(c.mana_cost||'')} ${esc(shortType(c.type_line))}</span>`:'';
-  if(c){const tl=(c.type_line||'').toLowerCase();if(tl.includes('land'))document.getElementById('cap-role').value='Land';else if(tl.includes('planeswalker'))document.getElementById('cap-role').value='Win Condition';}
+  const c=S.cardDB.find(x=>x.id===id);if(!c)return;
+  document.getElementById('cap-q').value='';
+  document.getElementById('cap-ac').style.display='none';
+  addToTray(c,4);
+  // auto-set role hint based on type (stored on tray save)
+  toast(`✓ ${c.name} added to tray`);
 }
-async function saveCardEntry(){
-  if(!S.capCardId){toast('Select a card first');return;}
-  const eid=document.getElementById('cap-eid').value;
-  const data={deck_id:parseInt(document.getElementById('cap-did').value),card_db_id:S.capCardId,qty:parseInt(document.getElementById('cap-qty').value)||1,zone:document.getElementById('cap-zone').value,role:document.getElementById('cap-role').value,perf:document.getElementById('cap-perf').value,notes:document.getElementById('cap-notes').value.trim()};
-  if(eid){const n=parseInt(eid),i=S.deckCards.findIndex(e=>e.id===n);S.deckCards[i]={...S.deckCards[i],...data};await gUpd('Deck_Cards',n,data);}
-  else{const row={id:nid(S.deckCards),...data};S.deckCards.push(row);const gId=await gAdd('Deck_Cards',data);if(gId)row.id=gId;}
-  saveLocal();document.getElementById('cap').style.display='none';renderMyDeckDetail();toast('✓ Card saved');
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#cap-q')&&!e.target.closest('#cap-ac'))document.getElementById('cap-ac').style.display='none';
+  if(!e.target.closest('.ac-wrap'))document.getElementById('scry-ac').style.display='none';
+});
+
+// PASTE into deck
+async function importToDeck(){
+  const deckId=document.getElementById('cap-did').value;
+  if(!deckId){toast('No deck selected');return;}
+  const raw=document.getElementById('cap-paste-ta').value;
+  const forceZone=document.getElementById('cap-paste-zone').value;
+  const entries=parseDecklist(raw);
+  if(!entries.length){document.getElementById('cap-paste-result').innerHTML='<span class="ir-err">No valid card lines found.</span>';return;}
+  document.getElementById('cap-paste-result').innerHTML=`<span style="color:var(--text-muted)">⏳ Importing ${entries.length} cards…</span>`;
+  const res={added:[],existed:[],failed:[],addedTray:[]};
+  for(const item of entries){
+    const r=await fetchAndStoreCard(item.name);
+    if(!r){res.failed.push(item.name);}
+    else{
+      if(r.fresh)res.added.push(r.card.name);else res.existed.push(r.card.name);
+      const zone=forceZone==='auto'?item.zone:forceZone;
+      addToTray(r.card,item.qty);
+      // store zone with tray item
+      const ti=tray.find(t=>t.cardId===r.card.id);if(ti)ti.zone=zone;
+      res.addedTray.push(r.card.name);
+    }
+    document.getElementById('cap-paste-result').innerHTML=`<span class="ir-ok">✓ ${res.added.length+res.existed.length}</span> <span class="ir-err">✗ ${res.failed.length}</span> — working…`;
+  }
+  saveLocal();renderDBList();
+  document.getElementById('cap-paste-result').innerHTML=
+    `${res.added.length?`<div class="ir-ok">✓ ${res.added.length} new card${res.added.length!==1?'s':''} fetched from Scryfall</div>`:''}
+     ${res.existed.length?`<div class="ir-warn">~ ${res.existed.length} already in database</div>`:''}
+     ${res.failed.length?`<div class="ir-err">✗ Not found: ${res.failed.join(', ')}</div>`:''}
+     <div class="ir-ok">${res.addedTray.length} cards loaded into tray — review quantities then click Save</div>`;
+  toast(`${res.addedTray.length} cards in tray — check quantities and save`);
+}
+
+// SAVE all tray cards to deck
+async function saveTrayCards(){
+  const deckId=parseInt(document.getElementById('cap-did').value);
+  if(!deckId||!tray.length){toast('Nothing to save');return;}
+  const zone=document.getElementById('cap-zone')?.value||'Mainboard';
+  const role=document.getElementById('cap-role')?.value||'Utility';
+  const notes=document.getElementById('cap-notes').value.trim();
+  let saved=0;
+  for(const{cardId,qty,zone:tZone}of tray){
+    const cardZone=tZone||zone;
+    const existing=S.deckCards.find(e=>e.deck_id===deckId&&e.card_db_id==cardId);
+    if(existing){
+      existing.qty=qty;existing.zone=cardZone;existing.role=role;
+      await gUpd('Deck_Cards',existing.id,{qty,zone:cardZone,role,notes});
+    }else{
+      const ed={deck_id:deckId,card_db_id:cardId,qty,zone:cardZone,role,perf:'Good',notes};
+      const row={id:nid(S.deckCards),...ed};S.deckCards.push(row);
+      const gId=await gAdd('Deck_Cards',ed);if(gId)row.id=gId;
+    }
+    saved++;
+  }
+  saveLocal();clearTray();renderMyDeckDetail();
+  document.getElementById('cap').style.display='none';
+  toast(`✓ ${saved} card${saved!==1?'s':''} saved to deck`);
+}
+
+// Edit a single existing card entry (click on card in deck list)
+function openEditCard(entryId){
+  const e=S.deckCards.find(x=>x.id===entryId);if(!e)return;
+  const c=S.cardDB.find(x=>x.id==e.card_db_id);
+  document.getElementById('cpe-eid').value=entryId;
+  document.getElementById('cpe-card-info').innerHTML=`${esc(c?.name||'?')} <span class="mana-cost">${renderMana(c?.mana_cost||'')}</span>`;
+  document.getElementById('cpe-qty').value=e.qty||1;
+  document.getElementById('cpe-zone').value=e.zone||'Mainboard';
+  document.getElementById('cpe-role').value=e.role||'Utility';
+  document.getElementById('cpe-perf').value=e.perf||'Good';
+  document.getElementById('cpe-notes').value=e.notes||'';
+  document.getElementById('cap').style.display='none';
+  const f=document.getElementById('cap-edit');f.style.display='block';f.scrollIntoView({behavior:'smooth'});
+}
+async function saveEditedCard(){
+  const eid=parseInt(document.getElementById('cpe-eid').value);
+  const data={qty:parseInt(document.getElementById('cpe-qty').value)||1,zone:document.getElementById('cpe-zone').value,role:document.getElementById('cpe-role').value,perf:document.getElementById('cpe-perf').value,notes:document.getElementById('cpe-notes').value.trim()};
+  const i=S.deckCards.findIndex(e=>e.id===eid);if(i>=0){S.deckCards[i]={...S.deckCards[i],...data};await gUpd('Deck_Cards',eid,data);}
+  saveLocal();document.getElementById('cap-edit').style.display='none';renderMyDeckDetail();toast('✓ Updated');
 }
 async function deleteCardEntry(){
-  if(!confirm('Remove card from deck?'))return;const eid=parseInt(document.getElementById('cap-eid').value);
+  if(!confirm('Remove card from deck?'))return;
+  const eid=parseInt(document.getElementById('cpe-eid').value);
   S.deckCards=S.deckCards.filter(e=>e.id!==eid);await gDel('Deck_Cards',eid);
-  saveLocal();document.getElementById('cap').style.display='none';renderMyDeckDetail();toast('Removed');
+  saveLocal();document.getElementById('cap-edit').style.display='none';renderMyDeckDetail();toast('Removed');
 }
-document.addEventListener('click',e=>{if(!e.target.closest('#cap-q')&&!e.target.closest('#cap-ac'))document.getElementById('cap-ac').style.display='none';});
 
-// ── MATCH LOG ──
+// ════════════════════════════════════════════
+//  MATCH LOG
+// ════════════════════════════════════════════
 function renderMatchLog(){
   const el=document.getElementById('ml-list');const ms=[...S.matchLog].reverse();
   if(!ms.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No matches yet</div></div>';return;}
@@ -752,16 +1089,11 @@ function openMatchForm(id){
   document.getElementById('ml-mydeck').innerHTML='<option value="">— Select —</option>'+S.myDecks.map(d=>`<option value="${d.id}" ${m?.My_Deck==d.id?'selected':''}>${esc(d.Deck_Name)}</option>`).join('');
   document.getElementById('ml-oppdeck').innerHTML='<option value="">— Select —</option>'+S.metaDecks.map(d=>`<option value="${d.id}" ${m?.Opponent_Deck==d.id?'selected':''}>${esc(d.Deck_Name)}</option>`).join('');
   document.getElementById('ml-date').value=m?.Date||new Date().toISOString().split('T')[0];
-  document.getElementById('ml-oppfree').value=m?.Opponent_Deck_Free||'';
-  document.getElementById('ml-result').value=m?.Result||'Win';
-  document.getElementById('ml-score').value=m?.Game_Score||'';
-  document.getElementById('ml-fmt').value=m?.Format||'Best-of-One';
-  document.getElementById('ml-event').value=m?.Event_Type||'Ranked';
-  document.getElementById('ml-pd').value=m?.On_Play_Or_Draw||'Play';
-  document.getElementById('ml-notes').value=m?.Game_Notes||'';
-  document.getElementById('ml-mistakes').value=m?.Mistakes||'';
-  document.getElementById('ml-worked').value=m?.What_Worked||'';
-  document.getElementById('ml-surprise').value=m?.Opponent_Surprise_Cards||'';
+  document.getElementById('ml-oppfree').value=m?.Opponent_Deck_Free||'';document.getElementById('ml-result').value=m?.Result||'Win';
+  document.getElementById('ml-score').value=m?.Game_Score||'';document.getElementById('ml-fmt').value=m?.Format||'Best-of-One';
+  document.getElementById('ml-event').value=m?.Event_Type||'Ranked';document.getElementById('ml-pd').value=m?.On_Play_Or_Draw||'Play';
+  document.getElementById('ml-notes').value=m?.Game_Notes||'';document.getElementById('ml-mistakes').value=m?.Mistakes||'';
+  document.getElementById('ml-worked').value=m?.What_Worked||'';document.getElementById('ml-surprise').value=m?.Opponent_Surprise_Cards||'';
   document.getElementById('ml-del').style.display=m?'block':'none';
   const f=document.getElementById('ml-form');f.style.display='block';f.scrollIntoView({behavior:'smooth'});
 }
@@ -778,7 +1110,9 @@ async function deleteMatch(){
   saveLocal();document.getElementById('ml-form').style.display='none';renderMatchLog();toast('Deleted');
 }
 
-// ── STATS ──
+// ════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════
 function renderStats(){
   const el=document.getElementById('stats-body');const ms=S.matchLog;
   if(!ms.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Log some matches!</div></div>';return;}
@@ -788,18 +1122,19 @@ function renderStats(){
   el.innerHTML=`
     <div class="stats-row"><div class="stat-box"><div class="stat-num">${t}</div><div class="stat-label">Games</div></div><div class="stat-box"><div class="stat-num" style="color:var(--green)">${w}</div><div class="stat-label">Wins</div></div><div class="stat-box"><div class="stat-num" style="color:var(--red)">${l}</div><div class="stat-label">Losses</div></div><div class="stat-box"><div class="stat-num" style="color:${wr>=50?'var(--green)':'var(--red)'}">${wr}%</div><div class="stat-label">Win Rate</div></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="panel"><div class="panel-title">vs Opponent Decks</div>${Object.entries(vsd).sort((a,b)=>(b[1].w+b[1].l)-(a[1].w+a[1].l)).map(([n,r])=>{const tt=r.w+r.l;const p=tt?Math.round(r.w/tt*100):0;return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:13px;font-weight:600">${esc(n)}</div><div style="font-size:12px;color:var(--text-muted)">${r.w}W–${r.l}L</div><div style="font-size:12px;font-weight:700;color:${p>=50?'var(--green)':'var(--red)'}">${p}%</div></div>`;}).join('')||'<div style="color:var(--text-dim);font-size:13px">No data yet</div>'}</div>
-      <div class="panel"><div class="panel-title">by My Deck</div>${Object.entries(bmd).sort((a,b)=>(b[1].w+b[1].l)-(a[1].w+a[1].l)).map(([n,r])=>{const tt=r.w+r.l;const p=tt?Math.round(r.w/tt*100):0;return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:13px;font-weight:600">${esc(n)}</div><div style="font-size:12px;color:var(--text-muted)">${r.w}W–${r.l}L</div><div style="font-size:12px;font-weight:700;color:${p>=50?'var(--green)':'var(--red)'}">${p}%</div></div>`;}).join('')||'<div style="color:var(--text-dim);font-size:13px">No data yet</div>'}</div>
+      <div class="panel"><div class="panel-title">vs Opponent Decks</div>${Object.entries(vsd).sort((a,b)=>(b[1].w+b[1].l)-(a[1].w+a[1].l)).map(([n,r])=>{const tt=r.w+r.l;const p=tt?Math.round(r.w/tt*100):0;return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:13px;font-weight:600">${esc(n)}</div><div style="font-size:12px;color:var(--text-muted)">${r.w}W–${r.l}L</div><div style="font-size:12px;font-weight:700;color:${p>=50?'var(--green)':'var(--red)'}">${p}%</div></div>`;}).join('')||'<div style="color:var(--text-dim);font-size:13px">No data</div>'}</div>
+      <div class="panel"><div class="panel-title">by My Deck</div>${Object.entries(bmd).sort((a,b)=>(b[1].w+b[1].l)-(a[1].w+a[1].l)).map(([n,r])=>{const tt=r.w+r.l;const p=tt?Math.round(r.w/tt*100):0;return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:13px;font-weight:600">${esc(n)}</div><div style="font-size:12px;color:var(--text-muted)">${r.w}W–${r.l}L</div><div style="font-size:12px;font-weight:700;color:${p>=50?'var(--green)':'var(--red)'}">${p}%</div></div>`;}).join('')||'<div style="color:var(--text-dim);font-size:13px">No data</div>'}</div>
     </div>
     <div class="panel" style="margin-top:0"><div class="panel-title">Recent Mistakes &amp; Lessons</div>
       ${ms.filter(m=>m.Mistakes).slice(-10).reverse().map(m=>{const myD=S.myDecks.find(d=>d.id==m.My_Deck);const oppD=S.metaDecks.find(d=>d.id==m.Opponent_Deck);return`<div style="padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">${m.Date||''} · ${esc(myD?.Deck_Name||'')} vs ${esc(oppD?.Deck_Name||m.Opponent_Deck_Free||'?')} · <span class="result-${(m.Result||'').toLowerCase()}">${m.Result||''}</span></div><div style="font-size:13px">${esc(m.Mistakes)}</div></div>`;}).join('')||'<div style="color:var(--text-dim);font-size:13px">No mistakes logged.</div>'}
     </div>`;
 }
 
-// ── HELPERS ──
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function tc(id){const b=document.getElementById(id);const a=document.getElementById(id+'-a');if(!b)return;b.classList.toggle('collapsed');if(a)a.textContent=b.classList.contains('collapsed')?'▸':'▾';}
-function colorPips(c){if(!c)return'';const m={W:{bg:'#f9f6d0',t:'#5a5030'},U:{bg:'#3a7ac0',t:'#d0e8ff'},B:{bg:'#2a1a2a',t:'#c0a0d0',bd:'1px solid #5a3a6a'},R:{bg:'#c03a20',t:'#ffd0c0'},G:{bg:'#2a7a30',t:'#d0ffd8'}};return[...c].filter(x=>m[x]).map(x=>`<span class="pip" style="background:${m[x].bg};color:${m[x].t};${m[x].bd?'border:'+m[x].bd:''}">${x}</span>`).join('');}
 function tierBadge(t){const m={'Tier 1':'tier1','Tier 2':'tier2','Tier 3':'tier3','Fringe':'fringe'};return t?`<span class="badge badge-${m[t]||'fringe'}">${esc(t)}</span>`:'';}
 function archBadge(a){return a?`<span class="badge badge-${(a||'').toLowerCase()}">${esc(a)}</span>`:'';}
 function thrBadge(t){if(!t)return'';const m={High:'badge-high',Medium:'badge-medium',Low:'badge-low'};return`<span class="badge ${m[t]||''}">${esc(t)}</span>`;}
