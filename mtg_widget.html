@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTG Standard Tracker</title>
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+<style>
+  /* ── Design tokens ── */
+  :root {
+    --bg:        #0e0e12;
+    --bg-card:   #17171f;
+    --bg-inset:  #1e1e2a;
+    --border:    #2a2a3a;
+    --border-hi: #3d3d55;
+    --text:      #dde1f0;
+    --text-muted:#7b7f9a;
+    --text-dim:  #4a4d65;
+    --gold:      #c9a84c;
+    --gold-dim:  #7a5e28;
+    --blue:      #4a90d9;
+    --green:     #4caf72;
+    --red:       #e05555;
+    --purple:    #9b72cf;
+    --accent:    #c9a84c;
+    --win:       #3a6e4a;
+    --loss:      #6e3a3a;
+    --draw:      #4a4a6e;
+    --radius:    8px;
+    --radius-lg: 14px;
+    --font-body: 'Georgia', serif;
+    --font-ui:   system-ui, -apple-system, sans-serif;
+    --font-mono: 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Nav ── */
+  #nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  #nav-logo {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+    margin-right: 16px;
+    flex-shrink: 0;
+  }
+
+  .nav-tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--bg-inset); }
+  .nav-tab.active { color: var(--gold); background: rgba(201,168,76,0.12); }
+
+  /* ── Layout ── */
+  #content { padding: 20px 20px 40px; max-width: 1100px; margin: 0 auto; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Cards & panels ── */
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  .panel-title {
+    font-family: var(--font-body);
+    font-size: 17px;
+    color: var(--gold);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Form elements ── */
+  input, textarea, select {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: var(--font-ui);
+    width: 100%;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--gold-dim);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  select option { background: var(--bg-card); }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--gold); color: #0e0e12; }
+  .btn-primary:hover { background: #d4b25f; }
+  .btn-secondary { background: var(--bg-inset); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--border-hi); }
+  .btn-danger { background: rgba(224,85,85,0.15); color: var(--red); border: 1px solid rgba(224,85,85,0.3); }
+  .btn-danger:hover { background: rgba(224,85,85,0.25); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* ── Tables ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr { cursor: pointer; transition: background 0.1s; }
+  .data-table tr:hover td { background: var(--bg-inset); }
+  .data-table tr.selected td { background: rgba(201,168,76,0.08); }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .badge-tier1 { background: rgba(201,168,76,0.2); color: var(--gold); }
+  .badge-tier2 { background: rgba(74,144,217,0.2); color: var(--blue); }
+  .badge-tier3 { background: rgba(155,114,207,0.2); color: var(--purple); }
+  .badge-fringe { background: var(--bg-inset); color: var(--text-muted); }
+  .badge-win { background: rgba(76,175,114,0.2); color: var(--green); }
+  .badge-loss { background: rgba(224,85,85,0.2); color: var(--red); }
+  .badge-draw { background: rgba(74,74,110,0.4); color: var(--text-muted); }
+  .badge-high { background: rgba(224,85,85,0.2); color: var(--red); }
+  .badge-medium { background: rgba(201,168,76,0.2); color: var(--gold); }
+  .badge-low { background: rgba(76,175,114,0.2); color: var(--green); }
+  .badge-aggro { background: rgba(224,85,85,0.15); color: #e07755; }
+  .badge-midrange { background: rgba(76,175,114,0.15); color: var(--green); }
+  .badge-control { background: rgba(74,144,217,0.15); color: var(--blue); }
+  .badge-combo { background: rgba(155,114,207,0.15); color: var(--purple); }
+  .badge-ramp { background: rgba(201,168,76,0.15); color: var(--gold); }
+
+  /* ── Mana pips ── */
+  .mana { display: inline-flex; gap: 2px; align-items: center; }
+  .pip {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 900; flex-shrink: 0;
+  }
+  .pip-W { background: #f9f6d0; color: #5a5030; }
+  .pip-U { background: #3a7ac0; color: #d0e8ff; }
+  .pip-B { background: #2a1a2a; color: #c0a0d0; border: 1px solid #5a3a6a; }
+  .pip-R { background: #c03a20; color: #ffd0c0; }
+  .pip-G { background: #2a7a30; color: #d0ffd8; }
+  .pip-C { background: #808080; color: #e0e0e0; }
+
+  /* ── Split layout ── */
+  .split { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+  .list-pane { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .detail-pane { }
+
+  .list-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .list-item {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item:hover { background: var(--bg-inset); }
+  .list-item.selected { background: rgba(201,168,76,0.1); border-left: 3px solid var(--gold); }
+  .list-item-name { font-weight: 600; font-size: 13px; }
+  .list-item-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Stats row ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 800; font-family: var(--font-body); color: var(--gold); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Search ── */
+  .search-bar { position: relative; margin-bottom: 12px; }
+  .search-bar input { padding-left: 30px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 13px; }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--gold-dim);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+
+  /* ── Log entry result coloring ── */
+  .result-win { color: var(--green); font-weight: 700; }
+  .result-loss { color: var(--red); font-weight: 700; }
+  .result-draw { color: var(--text-muted); font-weight: 700; }
+
+  /* ── Collapsible section ── */
+  .collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .collapsible-body { }
+  .collapsible-body.collapsed { display: none; }
+
+  /* ── Scrollable list ── */
+  .list-scroll { max-height: 500px; overflow-y: auto; }
+
+  /* ── Colors display ── */
+  .colors-display { font-family: var(--font-mono); font-size: 13px; }
+
+  /* ── Notes display ── */
+  .notes-display {
+    background: var(--bg-inset);
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--text);
+    border: 1px solid var(--border);
+    min-height: 60px;
+  }
+
+  /* ── Section subtitle ── */
+  .section-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: normal;
+    font-family: var(--font-ui);
+  }
+
+  /* ── Grist connection status ── */
+  #grist-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    margin-left: auto;
+  }
+  #grist-status.connected { background: rgba(76,175,114,0.15); color: var(--green); }
+  #grist-status.disconnected { background: rgba(224,85,85,0.15); color: var(--red); }
+  #grist-status .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ── Mode toggle ── */
+  .mode-toggle {
+    display: flex;
+    background: var(--bg-inset);
+    border-radius: var(--radius);
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: 14px;
+    width: fit-content;
+  }
+  .mode-btn {
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    color: var(--text-muted);
+    background: none;
+    transition: all 0.15s;
+  }
+  .mode-btn.active { background: var(--bg-card); color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div id="nav-logo">⚔ MTG Tracker</div>
+  <button class="nav-tab active" onclick="showView('meta')">Meta Decks</button>
+  <button class="nav-tab" onclick="showView('mydecks')">My Decks</button>
+  <button class="nav-tab" onclick="showView('matchlog')">Match Log</button>
+  <button class="nav-tab" onclick="showView('stats')">Stats</button>
+  <div id="grist-status" class="disconnected"><span class="dot"></span> Grist</div>
+</nav>
+
+<div id="content">
+
+  <!-- ═══════════════════ META DECKS VIEW ═══════════════════ -->
+  <div class="view active" id="view-meta">
+    <div class="split">
+      <div class="list-pane">
+        <div class="list-header">
+          <span>Meta Decks</span>
+          <button class="btn btn-sm btn-primary" onclick="openMetaForm(null)">+ Add</button>
+        </div>
+        <div style="padding: 10px 12px; border-bottom: 1px solid var(--border);">
+          <input type="text" placeholder="Search decks…" id="meta-search" oninput="renderMetaList()" style="font-size:12px;">
+        </div>
+        <div class="list-scroll" id="meta-list">
+          <div class="empty"><div class="empty-icon">🃏</div><div class="empty-text">No decks yet</div></div>
+        </div>
+      </div>
+      <div class="detail-pane" id="meta-detail">
+        <div class="panel" style="text-align:center; padding:40px; color: var(--text-dim);">
+          <div style="font-size:32px; margin-bottom:12px;">🎯</div>
+          <div>Select a deck to view details, or add a new one.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta Deck Form -->
+    <div id="meta-form" class="panel" style="display:none; margin-top:16px;">
+      <div class="panel-title" id="meta-form-title">Add Meta Deck</div>
+      <input type="hidden" id="mf-id">
+      <div class="field-row">
+        <div class="field"><label>Deck Name</label><input id="mf-name" type="text" placeholder="e.g. Esper Midrange"></div>
+        <div class="field"><label>Colors</label><input id="mf-colors" type="text" placeholder="e.g. WUB, RG, WUBRG"></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>Tier</label>
+          <select id="mf-tier">
+            <option value="">— Select —</option>
+            <option>Tier 1</option><option>Tier 2</option><option>Tier 3</option><option>Fringe</option>
+          </select>
+        </div>
+        <div class="field"><label>Archetype</label>
+          <select id="mf-archetype">
+            <option value="">— Select —</option>
+            <option>Aggro</option><option>Midrange</option><option>Control</option><option>Combo</option><option>Ramp</option>
+          </select>
+        </div>
+        <div class="field"><label>Threat Level</label>
+          <select id="mf-threat">
+            <option value="">— Select —</option>
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Key Cards (comma-separated)</label><input id="mf-keycards" type="text" placeholder="e.g. Atraxa, Sunfall, The Wandering Emperor"></div>
+      <div class="field"><label>Win Condition</label><input id="mf-wincondition" type="text" placeholder="Brief description of how they win"></div>
+      <div class="field"><label>How to Beat This Deck</label><textarea id="mf-howtobeat" placeholder="Strategy notes, key decisions, timing of interaction…"></textarea></div>
+      <div class="field"><label>Sideboard Plan</label><textarea id="mf-sideboard" placeholder="Cards to bring in, cards to cut…"></textarea></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveMetaDeck()">Save Deck</button>
+        <button class="btn btn-secondary" onclick="closeMetaForm()">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="mf-delete-btn" style="display:none; margin-left:auto;" onclick="deleteMetaDeck()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MY DECKS VIEW ═══════════════════ -->
+  <div class="view" id="view-mydecks">
+    <div class="split">
+      <div class="list-pane">
+        <div class="list-header">
+          <span>My Decks</span>
+          <button class="btn btn-sm btn-primary" onclick="openMyDeckForm(null)">+ Add</button>
+        </div>
+        <div class="list-scroll" id="mydecks-list">
+          <div class="empty"><div class="empty-icon">🧙</div><div class="empty-text">No decks yet</div></div>
+        </div>
+      </div>
+      <div class="detail-pane" id="mydecks-detail">
+        <div class="panel" style="text-align:center; padding:40px; color: var(--text-dim);">
+          <div style="font-size:32px; margin-bottom:12px;">🧙</div>
+          <div>Select one of your decks to view cards and notes.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Deck Form -->
+    <div id="mydeck-form" class="panel" style="display:none; margin-top:16px;">
+      <div class="panel-title" id="mydeck-form-title">Add My Deck</div>
+      <input type="hidden" id="df-id">
+      <div class="field-row">
+        <div class="field"><label>Deck Name</label><input id="df-name" type="text" placeholder="e.g. My Grixis Control"></div>
+        <div class="field"><label>Colors</label><input id="df-colors" type="text" placeholder="e.g. UBR"></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>Format</label>
+          <select id="df-format">
+            <option value="">— Select —</option>
+            <option>Best-of-One</option><option>Best-of-Three</option><option>Both</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="df-status">
+            <option>Active</option><option>Testing</option><option>Retired</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>General Strategy</label><textarea id="df-strategy" placeholder="How this deck wins and plays…"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Strengths</label><textarea id="df-strengths" placeholder="What this deck does well…" style="min-height:70px;"></textarea></div>
+        <div class="field"><label>Weaknesses</label><textarea id="df-weaknesses" placeholder="What this deck struggles against…" style="min-height:70px;"></textarea></div>
+      </div>
+      <div class="field"><label>Overall Notes / Journal</label><textarea id="df-notes" placeholder="Ongoing thoughts, changes, experiments…"></textarea></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveMyDeck()">Save Deck</button>
+        <button class="btn btn-secondary" onclick="closeMyDeckForm()">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="df-delete-btn" style="display:none; margin-left:auto;" onclick="deleteMyDeck()">Delete</button>
+      </div>
+    </div>
+
+    <!-- Card Form -->
+    <div id="card-form" class="panel" style="display:none; margin-top:16px;">
+      <div class="panel-title" id="card-form-title">Add Card Note</div>
+      <input type="hidden" id="cf-id">
+      <input type="hidden" id="cf-deck-id">
+      <div class="field-row">
+        <div class="field"><label>Card Name</label><input id="cf-name" type="text" placeholder="e.g. Sheoldred, the Apocalypse"></div>
+        <div class="field"><label>Mana Cost</label><input id="cf-mana" type="text" placeholder="e.g. 2BB"></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>Quantity</label><input id="cf-qty" type="number" min="1" max="99" value="4"></div>
+        <div class="field"><label>Zone</label>
+          <select id="cf-zone"><option>Mainboard</option><option>Sideboard</option></select>
+        </div>
+        <div class="field"><label>Card Type</label>
+          <select id="cf-type">
+            <option>Creature</option><option>Instant</option><option>Sorcery</option>
+            <option>Enchantment</option><option>Artifact</option><option>Planeswalker</option>
+            <option>Land</option><option>Battle</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Role in Deck</label>
+          <select id="cf-role">
+            <option>Win Condition</option><option>Removal</option><option>Card Draw</option>
+            <option>Ramp</option><option>Disruption</option><option>Protection</option>
+            <option>Utility</option><option>Filler</option><option>Land</option>
+          </select>
+        </div>
+        <div class="field"><label>Performance Rating</label>
+          <select id="cf-perf">
+            <option>Excellent</option><option>Good</option><option>Average</option>
+            <option>Underperforming</option><option>Cut Candidate</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Card Notes</label><textarea id="cf-notes" placeholder="How to play it, when to hold it, synergies, corner cases…"></textarea></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveCard()">Save Card</button>
+        <button class="btn btn-secondary" onclick="closeCardForm()">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="cf-delete-btn" style="display:none; margin-left:auto;" onclick="deleteCard()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MATCH LOG VIEW ═══════════════════ -->
+  <div class="view" id="view-matchlog">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h2 style="font-family: var(--font-body); color: var(--gold); font-size:18px;">Match Log</h2>
+        <div class="section-sub" style="margin-top:2px;">Track every game — wins, losses, and lessons learned</div>
+      </div>
+      <button class="btn btn-primary" onclick="openMatchForm(null)">+ Log Match</button>
+    </div>
+
+    <div id="match-list-container">
+      <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No matches logged yet</div></div>
+    </div>
+
+    <!-- Match Form -->
+    <div id="match-form" class="panel" style="display:none; margin-top:16px;">
+      <div class="panel-title" id="match-form-title">Log a Match</div>
+      <input type="hidden" id="mlog-id">
+      <div class="field-row">
+        <div class="field"><label>Date</label><input id="mlog-date" type="date"></div>
+        <div class="field"><label>My Deck</label>
+          <select id="mlog-mydeck"><option value="">— Select your deck —</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Opponent's Deck (Meta)</label>
+          <select id="mlog-oppdeck"><option value="">— Select meta deck —</option></select>
+        </div>
+        <div class="field"><label>Opponent's Deck (Custom Name)</label>
+          <input id="mlog-oppfree" type="text" placeholder="If not in meta list, type here…">
+        </div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>Result</label>
+          <select id="mlog-result">
+            <option>Win</option><option>Loss</option><option>Draw</option>
+          </select>
+        </div>
+        <div class="field"><label>Game Score</label>
+          <input id="mlog-score" type="text" placeholder="e.g. 2-1">
+        </div>
+        <div class="field"><label>Format</label>
+          <select id="mlog-format">
+            <option>Best-of-One</option><option>Best-of-Three</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Event Type</label>
+          <select id="mlog-event">
+            <option>Ranked</option><option>Casual</option><option>FNM</option>
+            <option>MTGO League</option><option>MTGO Challenge</option><option>Paper Tournament</option><option>Friendly</option>
+          </select>
+        </div>
+        <div class="field"><label>On Play or Draw?</label>
+          <select id="mlog-playdraw">
+            <option>Play</option><option>Draw</option><option>Mixed</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Game Notes</label><textarea id="mlog-notes" placeholder="What happened in the match? Key moments, opponent's line…"></textarea></div>
+      <div class="field"><label>Mistakes / What I Could Have Done Better</label><textarea id="mlog-mistakes" placeholder="Misplays, bad sequencing, wrong reads…"></textarea></div>
+      <div class="field"><label>What Worked Well</label><textarea id="mlog-worked" placeholder="Good plays, correct reads, lines that paid off…"></textarea></div>
+      <div class="field"><label>Opponent's Surprise Cards</label><input id="mlog-surprise" type="text" placeholder="Unexpected cards or tech they had…"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveMatch()">Save Match</button>
+        <button class="btn btn-secondary" onclick="closeMatchForm()">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="mlog-delete-btn" style="display:none; margin-left:auto;" onclick="deleteMatch()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STATS VIEW ═══════════════════ -->
+  <div class="view" id="view-stats">
+    <h2 style="font-family: var(--font-body); color: var(--gold); font-size:18px; margin-bottom:16px;">Performance Stats</h2>
+    <div id="stats-container">
+      <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Log some matches to see stats</div></div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let state = {
+  metaDecks: [],
+  myDecks: [],
+  myCards: [],
+  matchLog: [],
+  selectedMetaDeck: null,
+  selectedMyDeck: null,
+  gristConnected: false,
+  gristTableId: null
+};
+
+// ══════════════════════════════════════════════
+//  GRIST INTEGRATION
+// ══════════════════════════════════════════════
+let gristReady = false;
+
+function initGrist() {
+  if (typeof grist === 'undefined') {
+    console.warn('Grist API not available — running in standalone mode');
+    setGristStatus(false);
+    loadLocalData();
+    return;
+  }
+
+  grist.ready({ requiredAccess: 'full' });
+  setGristStatus(true);
+  gristReady = true;
+
+  // Listen for table selection changes
+  grist.onRecord(function(record) {
+    // When a row is selected in Grist, sync it here
+  });
+
+  // Pull data from all tables
+  loadFromGrist();
+}
+
+async function loadFromGrist() {
+  if (!gristReady) { loadLocalData(); return; }
+  try {
+    const tables = ['Meta_Decks', 'My_Decks', 'My_Cards', 'Match_Log'];
+    for (const t of tables) {
+      try {
+        const tbl = await grist.docApi.fetchTable(t);
+        processGristTable(t, tbl);
+      } catch(e) {
+        console.warn(`Table ${t} not found or empty:`, e.message);
+      }
+    }
+    renderAll();
+  } catch(e) {
+    console.error('Grist load error:', e);
+    loadLocalData();
+  }
+}
+
+function processGristTable(tableName, tbl) {
+  if (!tbl || !tbl.id) return;
+  const ids = tbl.id;
+  const rows = ids.map((id, i) => {
+    const row = { id };
+    for (const [col, vals] of Object.entries(tbl)) {
+      if (col !== 'id') row[col] = vals[i];
+    }
+    return row;
+  });
+
+  if (tableName === 'Meta_Decks') state.metaDecks = rows;
+  else if (tableName === 'My_Decks') state.myDecks = rows;
+  else if (tableName === 'My_Cards') state.myCards = rows;
+  else if (tableName === 'Match_Log') state.matchLog = rows;
+}
+
+async function gristAddRow(tableName, data) {
+  if (!gristReady) { toast('Saved locally (Grist not connected)'); return null; }
+  try {
+    const result = await grist.docApi.applyUserActions([
+      ['AddRecord', tableName, null, data]
+    ]);
+    return result.retValues[0];
+  } catch(e) {
+    console.error('Grist add error:', e);
+    toast('⚠ Grist write failed — check table name and column names');
+    return null;
+  }
+}
+
+async function gristUpdateRow(tableName, rowId, data) {
+  if (!gristReady) { toast('Updated locally'); return; }
+  try {
+    await grist.docApi.applyUserActions([
+      ['UpdateRecord', tableName, rowId, data]
+    ]);
+  } catch(e) {
+    console.error('Grist update error:', e);
+    toast('⚠ Grist update failed');
+  }
+}
+
+async function gristDeleteRow(tableName, rowId) {
+  if (!gristReady) { toast('Deleted locally'); return; }
+  try {
+    await grist.docApi.applyUserActions([
+      ['RemoveRecord', tableName, rowId]
+    ]);
+  } catch(e) {
+    console.error('Grist delete error:', e);
+  }
+}
+
+function setGristStatus(connected) {
+  state.gristConnected = connected;
+  const el = document.getElementById('grist-status');
+  if (connected) {
+    el.className = 'connected';
+    el.innerHTML = '<span class="dot"></span> Grist';
+  } else {
+    el.className = 'disconnected';
+    el.innerHTML = '<span class="dot"></span> Local Mode';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  LOCAL STORAGE FALLBACK
+// ══════════════════════════════════════════════
+function loadLocalData() {
+  try {
+    state.metaDecks = JSON.parse(localStorage.getItem('mtg_meta') || '[]');
+    state.myDecks   = JSON.parse(localStorage.getItem('mtg_mydecks') || '[]');
+    state.myCards   = JSON.parse(localStorage.getItem('mtg_cards') || '[]');
+    state.matchLog  = JSON.parse(localStorage.getItem('mtg_matches') || '[]');
+  } catch(e) { /* fresh start */ }
+  renderAll();
+}
+
+function saveLocal() {
+  localStorage.setItem('mtg_meta',    JSON.stringify(state.metaDecks));
+  localStorage.setItem('mtg_mydecks', JSON.stringify(state.myDecks));
+  localStorage.setItem('mtg_cards',   JSON.stringify(state.myCards));
+  localStorage.setItem('mtg_matches', JSON.stringify(state.matchLog));
+}
+
+function nextId(arr) {
+  return arr.length > 0 ? Math.max(...arr.map(r => r.id || 0)) + 1 : 1;
+}
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'stats') renderStats();
+}
+
+// ══════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════
+function renderAll() {
+  renderMetaList();
+  renderMyDecksList();
+  renderMatchLog();
+}
+
+// ══════════════════════════════════════════════
+//  META DECKS
+// ══════════════════════════════════════════════
+function renderMetaList() {
+  const q = (document.getElementById('meta-search')?.value || '').toLowerCase();
+  const filtered = state.metaDecks.filter(d =>
+    !q || d.Deck_Name?.toLowerCase().includes(q) ||
+    d.Colors?.toLowerCase().includes(q) ||
+    d.Archetype?.toLowerCase().includes(q)
+  );
+  const el = document.getElementById('meta-list');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🃏</div><div class="empty-text">No decks yet. Add one!</div></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(d => `
+    <div class="list-item ${state.selectedMetaDeck?.id === d.id ? 'selected' : ''}"
+         onclick="selectMetaDeck(${d.id})">
+      <div class="list-item-name">${esc(d.Deck_Name || 'Unnamed')}</div>
+      <div class="list-item-sub">${colorPips(d.Colors)} ${d.Tier || ''} • ${d.Archetype || ''} ${threatlabel(d.Threat_Level)}</div>
+    </div>
+  `).join('');
+}
+
+function selectMetaDeck(id) {
+  state.selectedMetaDeck = state.metaDecks.find(d => d.id === id);
+  renderMetaList();
+  renderMetaDetail();
+}
+
+function renderMetaDetail() {
+  const d = state.selectedMetaDeck;
+  if (!d) return;
+  const matches = state.matchLog.filter(m => m.Opponent_Deck == d.id);
+  const wins = matches.filter(m => m.Result === 'Win').length;
+  const losses = matches.filter(m => m.Result === 'Loss').length;
+
+  document.getElementById('meta-detail').innerHTML = `
+    <div class="panel">
+      <div class="panel-title">
+        ${esc(d.Deck_Name || 'Unnamed')}
+        <button class="btn btn-sm btn-secondary" onclick="openMetaForm(${d.id})" style="margin-left:auto;">Edit</button>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+        ${tierBadge(d.Tier)} ${archetypeBadge(d.Archetype)} ${threatBadge(d.Threat_Level)}
+        <span style="color:var(--text-muted); font-size:13px; align-self:center;">${colorPips(d.Colors)} ${d.Colors || ''}</span>
+      </div>
+
+      ${d.Key_Cards ? `<div class="field"><label>Key Cards</label><div style="font-size:13px; color:var(--text);">${esc(d.Key_Cards)}</div></div>` : ''}
+      ${d.Win_Condition ? `<div class="field"><label>Win Condition</label><div style="font-size:13px;">${esc(d.Win_Condition)}</div></div>` : ''}
+
+      <div class="collapsible-header" onclick="toggleSection('meta-howtobeat')">
+        <span>How To Beat This Deck</span><span id="meta-howtobeat-arrow">▾</span>
+      </div>
+      <div class="collapsible-body" id="meta-howtobeat">
+        <div class="notes-display">${esc(d.How_To_Beat || 'No notes yet. Click Edit to add strategy notes.')}</div>
+      </div>
+
+      <div class="collapsible-header" onclick="toggleSection('meta-sideboard')" style="margin-top:12px;">
+        <span>Sideboard Plan</span><span id="meta-sideboard-arrow">▾</span>
+      </div>
+      <div class="collapsible-body" id="meta-sideboard">
+        <div class="notes-display">${esc(d.Sideboard_Plan || 'No sideboard notes yet.')}</div>
+      </div>
+
+      <div class="collapsible-header" onclick="toggleSection('meta-matchhistory')" style="margin-top:12px;">
+        <span>My Record vs This Deck</span>
+        <span style="color:var(--text-muted); font-weight:normal; font-size:12px; margin-left:auto; margin-right:8px;">${wins}W – ${losses}L</span>
+        <span id="meta-matchhistory-arrow">▾</span>
+      </div>
+      <div class="collapsible-body" id="meta-matchhistory">
+        ${matches.length === 0 ? '<div style="color:var(--text-dim); font-size:13px; padding:8px 0;">No matches logged against this deck yet.</div>' :
+          matches.slice().reverse().map(m => `
+            <div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;">
+              <span class="result-${(m.Result||'').toLowerCase()}">${m.Result}</span>
+              ${m.Game_Score ? `<span style="color:var(--text-muted)"> ${m.Game_Score}</span>` : ''}
+              <span style="color:var(--text-dim); margin-left:8px;">${m.Date || ''}</span>
+              ${m.Mistakes ? `<div style="color:var(--text-muted); margin-top:4px; font-size:12px;">💭 ${esc(m.Mistakes.substring(0,100))}${m.Mistakes.length>100?'…':''}</div>` : ''}
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+  `;
+}
+
+function openMetaForm(id) {
+  const form = document.getElementById('meta-form');
+  const d = id ? state.metaDecks.find(x => x.id === id) : null;
+  document.getElementById('meta-form-title').textContent = d ? 'Edit Meta Deck' : 'Add Meta Deck';
+  document.getElementById('mf-id').value = d?.id || '';
+  document.getElementById('mf-name').value = d?.Deck_Name || '';
+  document.getElementById('mf-colors').value = d?.Colors || '';
+  document.getElementById('mf-tier').value = d?.Tier || '';
+  document.getElementById('mf-archetype').value = d?.Archetype || '';
+  document.getElementById('mf-threat').value = d?.Threat_Level || '';
+  document.getElementById('mf-keycards').value = d?.Key_Cards || '';
+  document.getElementById('mf-wincondition').value = d?.Win_Condition || '';
+  document.getElementById('mf-howtobeat').value = d?.How_To_Beat || '';
+  document.getElementById('mf-sideboard').value = d?.Sideboard_Plan || '';
+  document.getElementById('mf-delete-btn').style.display = d ? 'block' : 'none';
+  form.style.display = 'block';
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeMetaForm() {
+  document.getElementById('meta-form').style.display = 'none';
+}
+
+async function saveMetaDeck() {
+  const id = document.getElementById('mf-id').value;
+  const data = {
+    Deck_Name:     document.getElementById('mf-name').value.trim(),
+    Colors:        document.getElementById('mf-colors').value.trim().toUpperCase(),
+    Tier:          document.getElementById('mf-tier').value,
+    Archetype:     document.getElementById('mf-archetype').value,
+    Threat_Level:  document.getElementById('mf-threat').value,
+    Key_Cards:     document.getElementById('mf-keycards').value.trim(),
+    Win_Condition: document.getElementById('mf-wincondition').value.trim(),
+    How_To_Beat:   document.getElementById('mf-howtobeat').value.trim(),
+    Sideboard_Plan:document.getElementById('mf-sideboard').value.trim(),
+  };
+  if (!data.Deck_Name) { toast('Deck name is required'); return; }
+
+  if (id) {
+    const numId = parseInt(id);
+    const idx = state.metaDecks.findIndex(d => d.id === numId);
+    state.metaDecks[idx] = { ...state.metaDecks[idx], ...data };
+    await gristUpdateRow('Meta_Decks', numId, data);
+    state.selectedMetaDeck = state.metaDecks[idx];
+  } else {
+    const newId = nextId(state.metaDecks);
+    const row = { id: newId, ...data };
+    state.metaDecks.push(row);
+    const gId = await gristAddRow('Meta_Decks', data);
+    if (gId) row.id = gId;
+    state.selectedMetaDeck = row;
+  }
+  saveLocal();
+  closeMetaForm();
+  renderMetaList();
+  renderMetaDetail();
+  toast('✓ Deck saved');
+}
+
+async function deleteMetaDeck() {
+  if (!confirm('Delete this deck? This cannot be undone.')) return;
+  const id = parseInt(document.getElementById('mf-id').value);
+  state.metaDecks = state.metaDecks.filter(d => d.id !== id);
+  await gristDeleteRow('Meta_Decks', id);
+  state.selectedMetaDeck = null;
+  saveLocal();
+  closeMetaForm();
+  renderMetaList();
+  document.getElementById('meta-detail').innerHTML = '<div class="panel" style="text-align:center;padding:40px;color:var(--text-dim);">Select a deck to view details.</div>';
+  toast('Deck deleted');
+}
+
+// ══════════════════════════════════════════════
+//  MY DECKS
+// ══════════════════════════════════════════════
+function renderMyDecksList() {
+  const el = document.getElementById('mydecks-list');
+  if (!state.myDecks.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🧙</div><div class="empty-text">No decks yet. Add one!</div></div>';
+    return;
+  }
+  el.innerHTML = state.myDecks.map(d => `
+    <div class="list-item ${state.selectedMyDeck?.id === d.id ? 'selected' : ''}"
+         onclick="selectMyDeck(${d.id})">
+      <div class="list-item-name">${esc(d.Deck_Name || 'Unnamed')}</div>
+      <div class="list-item-sub">${colorPips(d.Colors)} ${d.Colors || ''} • <span style="color:${d.Status==='Active'?'var(--green)':d.Status==='Retired'?'var(--red)':'var(--gold)'}">${d.Status||''}</span></div>
+    </div>
+  `).join('');
+}
+
+function selectMyDeck(id) {
+  state.selectedMyDeck = state.myDecks.find(d => d.id === id);
+  renderMyDecksList();
+  renderMyDeckDetail();
+}
+
+function renderMyDeckDetail() {
+  const d = state.selectedMyDeck;
+  if (!d) return;
+  const cards = state.myCards.filter(c => c.Deck == d.id);
+  const mainboard = cards.filter(c => c.Zone === 'Mainboard');
+  const sideboard = cards.filter(c => c.Zone === 'Sideboard');
+  const matches = state.matchLog.filter(m => m.My_Deck == d.id);
+  const wins = matches.filter(m => m.Result === 'Win').length;
+  const total = matches.length;
+
+  document.getElementById('mydecks-detail').innerHTML = `
+    <div class="panel">
+      <div class="panel-title">
+        ${esc(d.Deck_Name)}
+        <button class="btn btn-sm btn-secondary" onclick="openMyDeckForm(${d.id})" style="margin-left:auto;">Edit Deck</button>
+      </div>
+
+      <div class="stats-row" style="grid-template-columns: repeat(4,1fr); margin-bottom:14px;">
+        <div class="stat-box"><div class="stat-num">${mainboard.length}</div><div class="stat-label">Main Cards</div></div>
+        <div class="stat-box"><div class="stat-num">${sideboard.length}</div><div class="stat-label">Sideboard</div></div>
+        <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-label">Matches</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:${wins/total>0.5?'var(--green)':'var(--red)'}">${total ? Math.round(wins/total*100)+'%' : '—'}</div><div class="stat-label">Win Rate</div></div>
+      </div>
+
+      ${d.General_Strategy ? `<div class="field"><label>Strategy</label><div class="notes-display" style="min-height:auto;">${esc(d.General_Strategy)}</div></div>` : ''}
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+        ${d.Strengths ? `<div><label>Strengths</label><div style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.Strengths)}</div></div>` : ''}
+        ${d.Weaknesses ? `<div><label>Weaknesses</label><div style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.Weaknesses)}</div></div>` : ''}
+      </div>
+
+      <div class="collapsible-header" onclick="toggleSection('deck-mainboard')">
+        <span>Mainboard (${mainboard.length} entries)</span>
+        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openCardForm(null, ${d.id})" style="font-size:11px; padding:3px 9px;">+ Card</button>
+        <span id="deck-mainboard-arrow" style="margin-left:8px;">▾</span>
+      </div>
+      <div class="collapsible-body" id="deck-mainboard">
+        ${renderCardList(mainboard, d.id)}
+      </div>
+
+      <div class="collapsible-header" onclick="toggleSection('deck-sideboard')" style="margin-top:12px;">
+        <span>Sideboard (${sideboard.length} entries)</span>
+        <span id="deck-sideboard-arrow" style="margin-left:8px;">▾</span>
+      </div>
+      <div class="collapsible-body" id="deck-sideboard">
+        ${renderCardList(sideboard, d.id)}
+      </div>
+
+      ${d.Overall_Notes ? `
+        <div class="collapsible-header" onclick="toggleSection('deck-notes')" style="margin-top:12px;">
+          <span>Deck Journal</span><span id="deck-notes-arrow">▾</span>
+        </div>
+        <div class="collapsible-body" id="deck-notes">
+          <div class="notes-display">${esc(d.Overall_Notes)}</div>
+        </div>` : ''}
+    </div>
+  `;
+}
+
+function renderCardList(cards, deckId) {
+  if (!cards.length) return '<div style="color:var(--text-dim);font-size:13px;padding:10px 0;">No cards yet.</div>';
+  // Group by type
+  const byType = {};
+  cards.forEach(c => {
+    const t = c.Card_Type || 'Other';
+    if (!byType[t]) byType[t] = [];
+    byType[t].push(c);
+  });
+  const typeOrder = ['Land','Creature','Instant','Sorcery','Enchantment','Artifact','Planeswalker','Battle','Other'];
+  return typeOrder.filter(t => byType[t]).map(t => `
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">${t}s</div>
+      ${byType[t].map(c => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .1s;"
+             onmouseover="this.style.background='var(--bg-inset)'" onmouseout="this.style.background=''"
+             onclick="openCardForm(${c.id}, ${deckId})">
+          <span style="color:var(--text-muted);font-weight:700;font-size:12px;min-width:18px;">${c.Quantity || 1}×</span>
+          <span style="font-weight:600;font-size:13px;">${esc(c.Card_Name || 'Unnamed')}</span>
+          ${c.Mana_Cost ? `<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:11px;">{${esc(c.Mana_Cost)}}</span>` : ''}
+          <span style="margin-left:auto;">${perfBadge(c.Performance_Rating)}</span>
+          ${c.Role ? `<span style="font-size:11px;color:var(--text-muted);">${esc(c.Role)}</span>` : ''}
+        </div>
+        ${c.Notes ? `<div style="font-size:12px;color:var(--text-muted);padding:0 8px 6px 34px;line-height:1.5;">${esc(c.Notes.substring(0,120))}${c.Notes.length>120?'…':''}</div>` : ''}
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function openMyDeckForm(id) {
+  const form = document.getElementById('mydeck-form');
+  const d = id ? state.myDecks.find(x => x.id === id) : null;
+  document.getElementById('mydeck-form-title').textContent = d ? 'Edit Deck' : 'Add My Deck';
+  document.getElementById('df-id').value = d?.id || '';
+  document.getElementById('df-name').value = d?.Deck_Name || '';
+  document.getElementById('df-colors').value = d?.Colors || '';
+  document.getElementById('df-format').value = d?.Format || '';
+  document.getElementById('df-status').value = d?.Status || 'Active';
+  document.getElementById('df-strategy').value = d?.General_Strategy || '';
+  document.getElementById('df-strengths').value = d?.Strengths || '';
+  document.getElementById('df-weaknesses').value = d?.Weaknesses || '';
+  document.getElementById('df-notes').value = d?.Overall_Notes || '';
+  document.getElementById('df-delete-btn').style.display = d ? 'block' : 'none';
+  form.style.display = 'block';
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeMyDeckForm() {
+  document.getElementById('mydeck-form').style.display = 'none';
+}
+
+async function saveMyDeck() {
+  const id = document.getElementById('df-id').value;
+  const data = {
+    Deck_Name:        document.getElementById('df-name').value.trim(),
+    Colors:           document.getElementById('df-colors').value.trim().toUpperCase(),
+    Format:           document.getElementById('df-format').value,
+    Status:           document.getElementById('df-status').value,
+    General_Strategy: document.getElementById('df-strategy').value.trim(),
+    Strengths:        document.getElementById('df-strengths').value.trim(),
+    Weaknesses:       document.getElementById('df-weaknesses').value.trim(),
+    Overall_Notes:    document.getElementById('df-notes').value.trim(),
+  };
+  if (!data.Deck_Name) { toast('Deck name is required'); return; }
+
+  if (id) {
+    const numId = parseInt(id);
+    const idx = state.myDecks.findIndex(d => d.id === numId);
+    state.myDecks[idx] = { ...state.myDecks[idx], ...data };
+    await gristUpdateRow('My_Decks', numId, data);
+    state.selectedMyDeck = state.myDecks[idx];
+  } else {
+    const newId = nextId(state.myDecks);
+    const row = { id: newId, ...data };
+    state.myDecks.push(row);
+    const gId = await gristAddRow('My_Decks', data);
+    if (gId) row.id = gId;
+    state.selectedMyDeck = row;
+  }
+  saveLocal();
+  closeMyDeckForm();
+  renderMyDecksList();
+  renderMyDeckDetail();
+  toast('✓ Deck saved');
+}
+
+async function deleteMyDeck() {
+  if (!confirm('Delete this deck? Cards linked to it will remain.')) return;
+  const id = parseInt(document.getElementById('df-id').value);
+  state.myDecks = state.myDecks.filter(d => d.id !== id);
+  await gristDeleteRow('My_Decks', id);
+  state.selectedMyDeck = null;
+  saveLocal();
+  closeMyDeckForm();
+  renderMyDecksList();
+  document.getElementById('mydecks-detail').innerHTML = '<div class="panel" style="text-align:center;padding:40px;color:var(--text-dim);">Select a deck to view details.</div>';
+  toast('Deck deleted');
+}
+
+// ══════════════════════════════════════════════
+//  CARDS
+// ══════════════════════════════════════════════
+function openCardForm(id, deckId) {
+  const form = document.getElementById('card-form');
+  const c = id ? state.myCards.find(x => x.id === id) : null;
+  document.getElementById('card-form-title').textContent = c ? 'Edit Card Note' : 'Add Card Note';
+  document.getElementById('cf-id').value = c?.id || '';
+  document.getElementById('cf-deck-id').value = deckId;
+  document.getElementById('cf-name').value = c?.Card_Name || '';
+  document.getElementById('cf-mana').value = c?.Mana_Cost || '';
+  document.getElementById('cf-qty').value = c?.Quantity || 4;
+  document.getElementById('cf-zone').value = c?.Zone || 'Mainboard';
+  document.getElementById('cf-type').value = c?.Card_Type || 'Creature';
+  document.getElementById('cf-role').value = c?.Role || 'Utility';
+  document.getElementById('cf-perf').value = c?.Performance_Rating || 'Good';
+  document.getElementById('cf-notes').value = c?.Notes || '';
+  document.getElementById('cf-delete-btn').style.display = c ? 'block' : 'none';
+  form.style.display = 'block';
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeCardForm() {
+  document.getElementById('card-form').style.display = 'none';
+}
+
+async function saveCard() {
+  const id = document.getElementById('cf-id').value;
+  const deckId = parseInt(document.getElementById('cf-deck-id').value);
+  const data = {
+    Card_Name:         document.getElementById('cf-name').value.trim(),
+    Deck:              deckId,
+    Mana_Cost:         document.getElementById('cf-mana').value.trim(),
+    Quantity:          parseInt(document.getElementById('cf-qty').value) || 1,
+    Zone:              document.getElementById('cf-zone').value,
+    Card_Type:         document.getElementById('cf-type').value,
+    Role:              document.getElementById('cf-role').value,
+    Performance_Rating:document.getElementById('cf-perf').value,
+    Notes:             document.getElementById('cf-notes').value.trim(),
+  };
+  if (!data.Card_Name) { toast('Card name is required'); return; }
+
+  if (id) {
+    const numId = parseInt(id);
+    const idx = state.myCards.findIndex(c => c.id === numId);
+    state.myCards[idx] = { ...state.myCards[idx], ...data };
+    await gristUpdateRow('My_Cards', numId, data);
+  } else {
+    const newId = nextId(state.myCards);
+    const row = { id: newId, ...data };
+    state.myCards.push(row);
+    const gId = await gristAddRow('My_Cards', data);
+    if (gId) row.id = gId;
+  }
+  saveLocal();
+  closeCardForm();
+  renderMyDeckDetail();
+  toast('✓ Card saved');
+}
+
+async function deleteCard() {
+  if (!confirm('Delete this card note?')) return;
+  const id = parseInt(document.getElementById('cf-id').value);
+  state.myCards = state.myCards.filter(c => c.id !== id);
+  await gristDeleteRow('My_Cards', id);
+  saveLocal();
+  closeCardForm();
+  renderMyDeckDetail();
+  toast('Card deleted');
+}
+
+// ══════════════════════════════════════════════
+//  MATCH LOG
+// ══════════════════════════════════════════════
+function renderMatchLog() {
+  const el = document.getElementById('match-list-container');
+  const matches = [...state.matchLog].reverse();
+  if (!matches.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No matches logged yet. Click "+ Log Match" to start!</div></div>';
+    return;
+  }
+
+  // Group by date
+  const byDate = {};
+  matches.forEach(m => {
+    const d = m.Date || 'Unknown Date';
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(m);
+  });
+
+  el.innerHTML = Object.entries(byDate).map(([date, ms]) => `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px;">${date}</div>
+      ${ms.map(m => renderMatchRow(m)).join('')}
+    </div>
+  `).join('');
+}
+
+function renderMatchRow(m) {
+  const myDeck = state.myDecks.find(d => d.id == m.My_Deck);
+  const oppDeck = state.metaDecks.find(d => d.id == m.Opponent_Deck);
+  const oppName = oppDeck?.Deck_Name || m.Opponent_Deck_Free || 'Unknown';
+
+  return `
+    <div class="panel" style="padding:14px; margin-bottom:8px; cursor:pointer;" onclick="openMatchForm(${m.id})">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span class="badge badge-${(m.Result||'').toLowerCase()}" style="font-size:13px; padding:3px 10px;">${m.Result || '?'}</span>
+        ${m.Game_Score ? `<span style="font-weight:700; font-size:14px; color:var(--text-muted);">${m.Game_Score}</span>` : ''}
+        <span style="font-size:13px;">with <strong>${esc(myDeck?.Deck_Name || 'Unknown deck')}</strong></span>
+        <span style="font-size:13px; color:var(--text-muted);">vs</span>
+        <span style="font-size:13px;"><strong>${esc(oppName)}</strong></span>
+        <span style="font-size:11px; color:var(--text-dim); margin-left:auto;">${m.Event_Type || ''} ${m.Format ? '· '+m.Format : ''}</span>
+      </div>
+      ${m.Mistakes ? `<div style="font-size:12px; color:var(--text-muted); margin-top:6px; border-top:1px solid var(--border); padding-top:6px;">
+        <span style="color:var(--red); margin-right:4px;">⚠</span>${esc(m.Mistakes.substring(0,120))}${m.Mistakes.length>120?'…':''}
+      </div>` : ''}
+      ${m.What_Worked ? `<div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+        <span style="color:var(--green); margin-right:4px;">✓</span>${esc(m.What_Worked.substring(0,100))}${m.What_Worked.length>100?'…':''}
+      </div>` : ''}
+    </div>
+  `;
+}
+
+function openMatchForm(id) {
+  const form = document.getElementById('match-form');
+  const m = id ? state.matchLog.find(x => x.id === id) : null;
+  document.getElementById('match-form-title').textContent = m ? 'Edit Match' : 'Log a Match';
+  document.getElementById('mlog-id').value = m?.id || '';
+
+  // Populate deck selects
+  const myDeckSel = document.getElementById('mlog-mydeck');
+  myDeckSel.innerHTML = '<option value="">— Select your deck —</option>' +
+    state.myDecks.map(d => `<option value="${d.id}" ${m?.My_Deck == d.id ? 'selected':''}>${esc(d.Deck_Name)}</option>`).join('');
+
+  const oppDeckSel = document.getElementById('mlog-oppdeck');
+  oppDeckSel.innerHTML = '<option value="">— Select meta deck —</option>' +
+    state.metaDecks.map(d => `<option value="${d.id}" ${m?.Opponent_Deck == d.id ? 'selected':''}>${esc(d.Deck_Name)}</option>`).join('');
+
+  document.getElementById('mlog-date').value = m?.Date || new Date().toISOString().split('T')[0];
+  document.getElementById('mlog-oppfree').value = m?.Opponent_Deck_Free || '';
+  document.getElementById('mlog-result').value = m?.Result || 'Win';
+  document.getElementById('mlog-score').value = m?.Game_Score || '';
+  document.getElementById('mlog-format').value = m?.Format || 'Best-of-One';
+  document.getElementById('mlog-event').value = m?.Event_Type || 'Ranked';
+  document.getElementById('mlog-playdraw').value = m?.On_Play_Or_Draw || 'Play';
+  document.getElementById('mlog-notes').value = m?.Game_Notes || '';
+  document.getElementById('mlog-mistakes').value = m?.Mistakes || '';
+  document.getElementById('mlog-worked').value = m?.What_Worked || '';
+  document.getElementById('mlog-surprise').value = m?.Opponent_Surprise_Cards || '';
+  document.getElementById('mlog-delete-btn').style.display = m ? 'block' : 'none';
+  form.style.display = 'block';
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeMatchForm() {
+  document.getElementById('match-form').style.display = 'none';
+}
+
+async function saveMatch() {
+  const id = document.getElementById('mlog-id').value;
+  const data = {
+    Date:                   document.getElementById('mlog-date').value,
+    My_Deck:                parseInt(document.getElementById('mlog-mydeck').value) || null,
+    Opponent_Deck:          parseInt(document.getElementById('mlog-oppdeck').value) || null,
+    Opponent_Deck_Free:     document.getElementById('mlog-oppfree').value.trim(),
+    Result:                 document.getElementById('mlog-result').value,
+    Game_Score:             document.getElementById('mlog-score').value.trim(),
+    Format:                 document.getElementById('mlog-format').value,
+    Event_Type:             document.getElementById('mlog-event').value,
+    On_Play_Or_Draw:        document.getElementById('mlog-playdraw').value,
+    Game_Notes:             document.getElementById('mlog-notes').value.trim(),
+    Mistakes:               document.getElementById('mlog-mistakes').value.trim(),
+    What_Worked:            document.getElementById('mlog-worked').value.trim(),
+    Opponent_Surprise_Cards:document.getElementById('mlog-surprise').value.trim(),
+  };
+
+  if (id) {
+    const numId = parseInt(id);
+    const idx = state.matchLog.findIndex(m => m.id === numId);
+    state.matchLog[idx] = { ...state.matchLog[idx], ...data };
+    await gristUpdateRow('Match_Log', numId, data);
+  } else {
+    const newId = nextId(state.matchLog);
+    const row = { id: newId, ...data };
+    state.matchLog.push(row);
+    const gId = await gristAddRow('Match_Log', data);
+    if (gId) row.id = gId;
+  }
+  saveLocal();
+  closeMatchForm();
+  renderMatchLog();
+  renderMetaDetail();
+  toast('✓ Match logged');
+}
+
+async function deleteMatch() {
+  if (!confirm('Delete this match record?')) return;
+  const id = parseInt(document.getElementById('mlog-id').value);
+  state.matchLog = state.matchLog.filter(m => m.id !== id);
+  await gristDeleteRow('Match_Log', id);
+  saveLocal();
+  closeMatchForm();
+  renderMatchLog();
+  toast('Match deleted');
+}
+
+// ══════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════
+function renderStats() {
+  const el = document.getElementById('stats-container');
+  const matches = state.matchLog;
+  if (!matches.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Log some matches to see stats here!</div></div>';
+    return;
+  }
+
+  const wins = matches.filter(m => m.Result === 'Win').length;
+  const losses = matches.filter(m => m.Result === 'Loss').length;
+  const draws = matches.filter(m => m.Result === 'Draw').length;
+  const total = matches.length;
+  const wr = total ? Math.round(wins/total*100) : 0;
+
+  // By opponent deck
+  const vsDecks = {};
+  matches.forEach(m => {
+    const oppDeck = state.metaDecks.find(d => d.id == m.Opponent_Deck);
+    const key = oppDeck?.Deck_Name || m.Opponent_Deck_Free || 'Unknown';
+    if (!vsDecks[key]) vsDecks[key] = { wins:0, losses:0, draws:0 };
+    if (m.Result==='Win') vsDecks[key].wins++;
+    else if (m.Result==='Loss') vsDecks[key].losses++;
+    else vsDecks[key].draws++;
+  });
+
+  // By my deck
+  const byMyDeck = {};
+  matches.forEach(m => {
+    const deck = state.myDecks.find(d => d.id == m.My_Deck);
+    const key = deck?.Deck_Name || 'Unknown';
+    if (!byMyDeck[key]) byMyDeck[key] = { wins:0, losses:0, draws:0 };
+    if (m.Result==='Win') byMyDeck[key].wins++;
+    else if (m.Result==='Loss') byMyDeck[key].losses++;
+    else byMyDeck[key].draws++;
+  });
+
+  el.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-label">Total Games</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${wins}</div><div class="stat-label">Wins</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--red)">${losses}</div><div class="stat-label">Losses</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:${wr>=50?'var(--green)':'var(--red)'}">${wr}%</div><div class="stat-label">Win Rate</div></div>
+      ${draws ? `<div class="stat-box"><div class="stat-num" style="color:var(--text-muted)">${draws}</div><div class="stat-label">Draws</div></div>` : ''}
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="panel">
+        <div class="panel-title">Record vs Opponent Decks</div>
+        ${Object.entries(vsDecks).sort((a,b)=>(b[1].wins+b[1].losses)-(a[1].wins+a[1].losses)).map(([name, rec]) => {
+          const tot = rec.wins+rec.losses+rec.draws;
+          const pct = tot ? Math.round(rec.wins/tot*100) : 0;
+          return `
+            <div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border);">
+              <div style="flex:1; font-size:13px; font-weight:600;">${esc(name)}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${rec.wins}W–${rec.losses}L${rec.draws?'–'+rec.draws+'D':''}</div>
+              <div style="font-size:12px; font-weight:700; color:${pct>=50?'var(--green)':'var(--red)'};">${pct}%</div>
+            </div>`;
+        }).join('')}
+      </div>
+      <div class="panel">
+        <div class="panel-title">Record by My Deck</div>
+        ${Object.entries(byMyDeck).sort((a,b)=>(b[1].wins+b[1].losses)-(a[1].wins+a[1].losses)).map(([name, rec]) => {
+          const tot = rec.wins+rec.losses+rec.draws;
+          const pct = tot ? Math.round(rec.wins/tot*100) : 0;
+          return `
+            <div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border);">
+              <div style="flex:1; font-size:13px; font-weight:600;">${esc(name)}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${rec.wins}W–${rec.losses}L${rec.draws?'–'+rec.draws+'D':''}</div>
+              <div style="font-size:12px; font-weight:700; color:${pct>=50?'var(--green)':'var(--red)'};">${pct}%</div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:0;">
+      <div class="panel-title">Recent Mistakes & Lessons</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Review your last 10 logged mistakes to improve your play</div>
+      ${matches.filter(m=>m.Mistakes).slice(-10).reverse().map(m => {
+        const myDeck = state.myDecks.find(d=>d.id==m.My_Deck);
+        const oppDeck = state.metaDecks.find(d=>d.id==m.Opponent_Deck);
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">${m.Date||''} · ${esc(myDeck?.Deck_Name||'')} vs ${esc(oppDeck?.Deck_Name||m.Opponent_Deck_Free||'?')} · <span class="result-${(m.Result||'').toLowerCase()}">${m.Result||''}</span></div>
+          <div style="font-size:13px;color:var(--text);">${esc(m.Mistakes)}</div>
+        </div>`;
+      }).join('') || '<div style="color:var(--text-dim);font-size:13px;">No mistakes logged yet.</div>'}
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  const arrow = document.getElementById(id+'-arrow');
+  if (!body) return;
+  body.classList.toggle('collapsed');
+  if (arrow) arrow.textContent = body.classList.contains('collapsed') ? '▸' : '▾';
+}
+
+function colorPips(colors) {
+  if (!colors) return '';
+  const map = {W:'#f9f6d0',U:'#3a7ac0',B:'#2a1a2a',R:'#c03a20',G:'#2a7a30'};
+  const text = {W:'#5a5030',U:'#d0e8ff',B:'#c0a0d0',R:'#ffd0c0',G:'#d0ffd8'};
+  return [...(colors || '')].filter(c => map[c]).map(c =>
+    `<span class="pip" style="background:${map[c]};color:${text[c]};border:${c==='B'?'1px solid #5a3a6a':'none'}">${c}</span>`
+  ).join('');
+}
+
+function tierBadge(t) {
+  const cls = {
+    'Tier 1':'tier1','Tier 2':'tier2','Tier 3':'tier3','Fringe':'fringe'
+  }[t] || 'fringe';
+  return t ? `<span class="badge badge-${cls}">${esc(t)}</span>` : '';
+}
+
+function archetypeBadge(a) {
+  const cls = (a||'').toLowerCase();
+  return a ? `<span class="badge badge-${cls}">${esc(a)}</span>` : '';
+}
+
+function threatBadge(t) {
+  if (!t) return '';
+  const cls = (t||'').toLowerCase();
+  return `<span class="badge badge-${cls}">⚡ ${esc(t)}</span>`;
+}
+
+function threatlabel(t) {
+  if (!t) return '';
+  const c = {High:'var(--red)',Medium:'var(--gold)',Low:'var(--green)'}[t] || 'var(--text-muted)';
+  return `<span style="color:${c}; font-size:11px;">⚡${t}</span>`;
+}
+
+function perfBadge(p) {
+  if (!p) return '';
+  const c = {
+    Excellent:'var(--green)', Good:'var(--blue)',
+    Average:'var(--text-muted)', Underperforming:'var(--gold)',
+    'Cut Candidate':'var(--red)'
+  }[p] || 'var(--text-dim)';
+  const sym = {Excellent:'★',Good:'●',Average:'○',Underperforming:'▽','Cut Candidate':'✕'}[p] || '?';
+  return `<span style="color:${c}; font-size:11px;" title="${p}">${sym}</span>`;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's date as default in match form
+  const dateEl = document.getElementById('mlog-date');
+  if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+  initGrist();
+});
+</script>
+</body>
+</html>
